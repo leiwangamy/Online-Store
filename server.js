@@ -1,36 +1,57 @@
 const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
-
 const app = express();
-app.use(cors());
-app.use(express.static(__dirname)); // Serve images, HTML, CSS, etc.
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+const bodyParser = require('body-parser');
+const path = require('path');
+const fs = require('fs');
+
+// ✅ Middleware must go before any routes
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static('public'));
+
+// Serve registration page
+app.get('/register', (req, res) => {
+  res.sendFile(__dirname + '/public/register.html');
 });
 
-// API route to return product data
-app.get('/api/products', (req, res) => {
-  const filePath = path.join(__dirname, 'products.json');
-  fs.readFile(filePath, 'utf-8', (err, data) => {
-    if (err) {
-      console.error("❌ Failed to read products.json:", err);
-      return res.status(500).json({ error: 'Failed to load products' });
-    }
+// Handle registration logic
+app.post('/register', (req, res) => {
+  const { username, password } = req.body;
 
-    try {
-      const products = JSON.parse(data);
-      res.json(products);
-    } catch (parseErr) {
-      console.error("❌ JSON parse error:", parseErr);
-      res.status(500).json({ error: 'Invalid JSON format' });
-    }
-  });
+  let users = [];
+  if (fs.existsSync('users.json')) {
+    users = JSON.parse(fs.readFileSync('users.json'));
+  }
+
+  const existingUser = users.find(user => user.username === username);
+  if (existingUser) {
+    return res.send('Username already taken.');
+  }
+
+  users.push({ username, password });
+  fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
+  res.send('Registration successful! <a href="/">Go to Login</a>');
 });
 
-// Start the server
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Server is running on http://localhost:${PORT}`);
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  // Load users from file
+  let users = [];
+  if (fs.existsSync('users.json')) {
+    users = JSON.parse(fs.readFileSync('users.json'));
+  }
+
+  // Check if user exists and password matches
+  const user = users.find(u => u.username === username && u.password === password);
+
+  if (user) {
+    res.send('Login successful!');
+  } else {
+    res.send('Invalid credentials.');
+  }
+});
+
+
+app.listen(3000, () => {
+  console.log('Server running at http://localhost:3000');
 });
