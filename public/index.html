@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Natural Products</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Natural Products</h1>
+  <header>
+    <h1><img src="https://cdn-icons-png.flaticon.com/512/2909/2909765.png" width="30"> Natural Products</h1>
+    <nav>
+      <a href="cart.html">🛒 Cart (<span id="cart-count">0</span>)</a>
+
+
+      <a href="login.html">Login</a>
+      <a href="register.html">Register</a>
+    </nav>
+  </header>
+
   <div id="product-list" class="product-grid"></div>
 
-
-  <!-- ✅ Link to app.js (must be after the content) -->
   <script src="app.js"></script>
 </body>
 </html>

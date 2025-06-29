@@ -1,68 +1,46 @@
 const express = require('express');
-const app = express();
-const bodyParser = require('body-parser');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');
 
-// ✅ Middleware
+const app = express();
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// ✅ Route: Serve index.html manually at root
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+// ✅ Serve products API
+app.get('/api/products', (req, res) => {
+  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
+  res.json(products);
 });
 
-// ✅ Route: Serve registration page
-app.get('/register', (req, res) => {
-  res.sendFile(__dirname + '/public/register.html');
-});
-
-// ✅ Route: Handle registration
-app.post('/register', (req, res) => {
-  const { username, password } = req.body;
-  let users = [];
-  if (fs.existsSync('users.json')) {
-    users = JSON.parse(fs.readFileSync('users.json'));
-  }
-
-  const existingUser = users.find(user => user.username === username);
-  if (existingUser) {
-    return res.send('Username already taken.');
-  }
-
-  users.push({ username, password });
-  fs.writeFileSync('users.json', JSON.stringify(users, null, 2));
-  res.send('Registration successful! <a href="/">Go to Login</a>');
-});
-
-// ✅ Route: Handle login
+// ✅ Handle login POST
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  let users = [];
-  if (fs.existsSync('users.json')) {
-    users = JSON.parse(fs.readFileSync('users.json'));
-  }
 
-  const user = users.find(u => u.username === username && u.password === password);
+  // Read users from users.json
+  const users = JSON.parse(fs.readFileSync('users.json', 'utf-8'));
+
+  // Find matching user
+  const user = users.find(u =>
+    u.username.trim() === username.trim() &&
+    u.password.trim() === password.trim()
+  );
+
   if (user) {
-    res.redirect('/cart.html'); // Redirect to cart or dashboard after login
+    res.send(`<p style="color:green;">✅ Login successful! Redirecting to <a href="/cart.html">Cart</a>...</p>
+              <script>setTimeout(() => location.href='/cart.html', 2000);</script>`);
   } else {
-    res.send('Invalid credentials. <a href="/">Try again</a>');
+    res.send(`<p style="color:red;">❌ Invalid username or password</p>
+              <a href="/login.html">Try Again</a>`);
   }
 });
 
-// ✅ Route: Serve products API
-app.get('/api/products', (req, res) => {
-  if (fs.existsSync('products.json')) {
-    const products = JSON.parse(fs.readFileSync('products.json'));
-    res.json(products);
-  } else {
-    res.status(404).json({ error: 'Products file not found' });
-  }
-});
+// ✅ Optional: handle registration POST (if needed in the future)
+// app.post('/register', ...);
 
-// ✅ Start server
-app.listen(3000, () => {
-  console.log('Server running at http://localhost:3000');
+// ✅ Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🟢 Server running at http://localhost:${PORT}`);
 });
