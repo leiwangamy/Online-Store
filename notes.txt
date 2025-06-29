@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "name": "Aloe Vera Gel",
+    "price": 19.50,
+    "description": "Soothing and moisturizing aloe vera gel.",
+    "images": ["images/aloe1.jpg", "images/aloe2.png"]
+  },
+  {
+    "id": 2,
+    "name": "Insect Ointment",
+    "price": 15.49,
+    "description": "Relief from bug bites and stings.",
+    "images": ["images/ointment1.jpg", "images/ointment2.jpg"]
+  },
+  {
+    "id": 3,
+    "name": "Facial Mask",
+    "price": 19.00,
+    "description": "Refreshing facial mask for clear skin.",
+    "images": ["images/mask1.png", "images/mask2.png", "images/mask3.png"]
+  }
+]
