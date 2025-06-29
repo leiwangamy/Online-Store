@@ -6,81 +6,95 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+      font-family: Arial;
+      margin: 20px;
     }
-
-    h1 {
-      color: #333;
+    .form-group {
+      margin-bottom: 15px;
     }
-
-    form {
-      max-width: 500px;
-      margin-top: 20px;
-    }
-
     label {
       display: block;
-      margin-top: 15px;
-      font-weight: bold;
+      margin-bottom: 4px;
     }
-
-    input, textarea {
+    input, select {
       width: 100%;
       padding: 8px;
-      margin-top: 5px;
-      box-sizing: border-box;
+      font-size: 16px;
     }
-
-    .submit-btn {
+    button {
       margin-top: 20px;
-      background-color: #2a8f2a;
+      padding: 10px 20px;
+      background-color: #007bff;
       color: white;
       border: none;
-      padding: 10px 20px;
       font-size: 16px;
-      border-radius: 4px;
       cursor: pointer;
+      border-radius: 4px;
     }
-
-    .submit-btn:hover {
-      background-color: #237523;
+    button:hover {
+      background-color: #0056b3;
+    }
+    #confirmation {
+      margin-top: 30px;
+      padding: 15px;
+      background-color: #e0ffe0;
+      border: 1px solid #8bc34a;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>Checkout</h1>
+  <h2>Checkout</h2>
 
-  <p>Please provide your contact and delivery details:</p>
+  <form id="checkout-form">
+    <div class="form-group">
+      <label for="name">Full Name</label>
+      <input id="name" required />
+    </div>
 
-  <form onsubmit="submitOrder(event)">
-    <label for="name">Full Name</label>
-    <input type="text" id="name" required />
+    <div class="form-group">
+      <label for="address">Shipping Address</label>
+      <input id="address" required />
+    </div>
 
-    <label for="email">Email</label>
-    <input type="email" id="email" required />
+    <div class="form-group">
+      <label for="payment">Payment Method</label>
+      <select id="payment" required>
+        <option value="">--Select--</option>
+        <option value="card">Credit Card</option>
+        <option value="paypal">PayPal</option>
+        <option value="cod">Cash on Delivery</option>
+      </select>
+    </div>
 
-    <label for="address">Shipping Address</label>
-    <textarea id="address" rows="3" required></textarea>
-
-    <button type="submit" class="submit-btn">Place Order</button>
+    <button type="submit">Confirm Order</button>
   </form>
 
+  <div id="confirmation"></div>
+
   <script>
-    function submitOrder(event) {
-      event.preventDefault();
+    document.getElementById("checkout-form").onsubmit = function (e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const address = document.getElementById("address").value;
+      const payment = document.getElementById("payment").value;
 
-      // You could send this data to a backend here
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const address = document.getElementById('address').value;
+      if (!name || !address || !payment) return;
 
-      alert(`Thank you, ${name}! Your order has been placed.`);
-
-      // Clear cart and redirect
+      // Normally this would send data to the server
       localStorage.removeItem("cart");
-      window.location.href = "index.html";
-    }
+
+      const confirmation = document.getElementById("confirmation");
+      confirmation.innerHTML = `
+        <h3>✅ Order Confirmed!</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Address:</strong> ${address}</p>
+        <p><strong>Payment:</strong> ${payment}</p>
+        <p>Thank you for your purchase!</p>
+      `;
+      confirmation.style.display = "block";
+      document.getElementById("checkout-form").style.display = "none";
+    };
   </script>
 </body>
 </html>

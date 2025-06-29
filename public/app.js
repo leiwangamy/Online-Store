@@ -11,6 +11,17 @@ function updateCartCount() {
   }
 }
 
+// ✅ Show temporary alert
+function showTemporaryAlert(message, duration = 2000) {
+  const alertBox = document.getElementById("custom-alert");
+  if (!alertBox) return;
+  alertBox.textContent = message;
+  alertBox.style.display = "block";
+  setTimeout(() => {
+    alertBox.style.display = "none";
+  }, duration);
+}
+
 // ✅ Save to localStorage with tax/shipping info
 function addToCart(product) {
   let cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -33,7 +44,7 @@ function addToCart(product) {
   }
 
   localStorage.setItem("cart", JSON.stringify(cart));
-  alert(`Added ${product.name} to cart.`);
+  showTemporaryAlert(`✅ Added ${product.name} to cart`);
   updateCartCount();
 }
 
