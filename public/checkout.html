@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Checkout</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    form {
+      max-width: 500px;
+      margin-top: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+
+    .submit-btn {
+      margin-top: 20px;
+      background-color: #2a8f2a;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #237523;
+    }
+  </style>
+</head>
+<body>
+  <h1>Checkout</h1>
+
+  <p>Please provide your contact and delivery details:</p>
+
+  <form onsubmit="submitOrder(event)">
+    <label for="name">Full Name</label>
+    <input type="text" id="name" required />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" required />
+
+    <label for="address">Shipping Address</label>
+    <textarea id="address" rows="3" required></textarea>
+
+    <button type="submit" class="submit-btn">Place Order</button>
+  </form>
+
+  <script>
+    function submitOrder(event) {
+      event.preventDefault();
+
+      // You could send this data to a backend here
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const address = document.getElementById('address').value;
+
+      alert(`Thank you, ${name}! Your order has been placed.`);
+
+      // Clear cart and redirect
+      localStorage.removeItem("cart");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
