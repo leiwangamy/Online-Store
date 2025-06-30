@@ -29,6 +29,10 @@
       border-left: 5px solid #f0c36d;
       font-weight: bold;
     }
+
+    .cart-item {
+      margin-bottom: 25px;
+    }
   </style>
 </head>
 <body>
@@ -79,16 +83,24 @@
 
         const productDiv = document.createElement("div");
         productDiv.className = "cart-item";
-        productDiv.innerHTML = `
-          <h3>${item.name}</h3>
-          <p>Price: $${item.price.toFixed(2)}</p>
-          <p>Quantity: ${quantity}</p>
-          <p>GST: $${gst.toFixed(2)} | PST: $${pst.toFixed(2)} | Shipping: $${shipping.toFixed(2)}</p>
-          <button onclick="removeFromCart(${index})">Remove</button>
-        `;
-        container.appendChild(productDiv);
-      });
 
+        productDiv.innerHTML = `
+          <div style="display: flex; gap: 15px; align-items: center;">
+            <img src="${item.image}" alt="${item.name}" width="100" style="border-radius: 8px;" />
+            <div>
+              <h3>${item.name}</h3>
+              <p>Price: $${item.price.toFixed(2)}</p>
+              <p>Quantity: ${quantity}</p>
+              <p>GST: $${gst.toFixed(2)} | PST: $${pst.toFixed(2)} | Shipping: $${shipping.toFixed(2)}</p>
+              <button onclick="removeFromCart(${index})">Remove</button>
+            </div>
+          </div>
+        `;
+
+        container.appendChild(productDiv);
+      }); // ✅ Close forEach
+
+      // ✅ Display totals and checkout button
       const totalDiv = document.getElementById("total");
       totalDiv.innerHTML = `
         <p>GST Total: $${gstTotal.toFixed(2)}</p>
@@ -98,19 +110,19 @@
         <button id="checkout-btn" class="checkout-button">Proceed to Checkout</button>
       `;
 
+      // ✅ Handle checkout click
       document.getElementById("checkout-btn").onclick = () => {
         if (cart.length === 0) {
           showTemporaryAlert("🛑 Your cart is empty.");
           return;
         }
-        // ✅ Redirect to checkout page
-        window.location.href = "checkout.html";
-
-        
-        // Simulate checkout
+        // Simulate checkout and redirect
         localStorage.removeItem("cart");
         displayCart();
         showTemporaryAlert("✅ Thank you! Your order has been placed.");
+        setTimeout(() => {
+          window.location.href = "checkout.html";
+        }, 1000);
       };
     }
 
@@ -125,6 +137,7 @@
       displayCart();
     }
 
+    // ✅ Load on page open
     displayCart();
   </script>
 </body>
