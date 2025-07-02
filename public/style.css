@@ -72,3 +72,9 @@ button {
 .add-to-cart-button:hover {
   background-color: #218838;
 }
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 15px;
+}

@@ -1,20 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 20px;
+      background-color: #f2f2f2;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    label, input {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #2a8f2a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #237523;
+    }
+
+    .message {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h2>Login Form</h2>
-  <form action="/login" method="POST">
+  <h2>🔐 Login</h2>
+  <form id="login-form">
     <label>Username:</label>
-    <input type="text" name="username" required><br><br>
+    <input type="text" name="username" required>
 
     <label>Password:</label>
-    <input type="password" name="password" required><br><br>
+    <input type="password" name="password" required>
 
     <button type="submit">Login</button>
   </form>
 
-  <p><a href="/register">New user? Register here</a></p>
+  <p><a href="/register.html">New user? Register here</a></p>
+
+  <p class="message" id="error-message"></p>
+
+  <script>
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const username = form.username.value.trim();
+      const password = form.password.value.trim();
+
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Save user data to localStorage
+        localStorage.setItem("user", JSON.stringify(data));
+        window.location.href = "/index.html"; // Redirect to home or shopping page
+      } else {
+        document.getElementById("error-message").textContent = data.message || "Login failed.";
+      }
+    });
+  </script>
 </body>
 </html>

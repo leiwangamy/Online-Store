@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Account</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .account-box {
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 10px;
+      background-color: white;
+    }
+
+    .account-info {
+      margin-bottom: 15px;
+    }
+
+    button {
+      background-color: #c0392b;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a93226;
+    }
+
+    a {
+      display: inline-block;
+      margin-top: 15px;
+      color: #2a8f2a;
+    }
+  </style>
+</head>
+<body>
+  <h2>👤 My Account</h2>
+  <div class="account-box">
+    <div class="account-info"><strong>Full Name:</strong> <span id="full-name">Loading...</span></div>
+    <div class="account-info"><strong>Email:</strong> <span id="email">Loading...</span></div>
+    <div class="account-info"><strong>Shipping Address:</strong> <span id="address">Loading...</span></div>
+
+    <button id="logout-btn">Log Out</button>
+    <br />
+    <a href="/cart.html">← Back to Cart</a> |
+    <a href="/index.html">🏠 Home</a>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (!user) {
+      alert("You are not logged in.");
+      window.location.href = "/login.html";
+    } else {
+      document.getElementById("full-name").textContent = user.fullName || "(N/A)";
+      document.getElementById("email").textContent = user.username;
+      document.getElementById("address").textContent = user.address || "(N/A)";
+    }
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      localStorage.removeItem("user");
+      localStorage.removeItem("cart");
+      window.location.href = "/login.html";
+    });
+  </script>
+</body>
+</html>

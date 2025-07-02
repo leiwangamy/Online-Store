@@ -1,23 +1,45 @@
-[
-  {
-    "id": 1,
-    "name": "Aloe Vera Gel",
-    "price": 19.50,
-    "description": "Soothing and moisturizing aloe vera gel.",
-    "images": ["images/aloe1.jpg", "images/aloe2.png"]
-  },
-  {
-    "id": 2,
-    "name": "Insect Ointment",
-    "price": 15.49,
-    "description": "Relief from bug bites and stings.",
-    "images": ["images/ointment1.jpg", "images/ointment2.jpg"]
-  },
-  {
-    "id": 3,
-    "name": "Facial Mask",
-    "price": 19.00,
-    "description": "Refreshing facial mask for clear skin.",
-    "images": ["images/mask1.png", "images/mask2.png", "images/mask3.png"]
-  }
-]
+document.getElementById("registerForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const fullName = document.getElementById("fullName").value;
+  const address = document.getElementById("address").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const userData = {
+    fullName,
+    address,
+    email,
+    password // or hash it in real app
+  };
+
+  localStorage.setItem("user", JSON.stringify(userData));
+  window.location.href = "/index.html"; // or your homepage
+});
+
+✅ Step 3: Update Checkout Page (checkout.html) to pre-fill or skip name/address
+Replace the <input> fields with auto-filled text or skip them:
+
+javascript
+Copy
+Edit
+const user = JSON.parse(localStorage.getItem("user"));
+
+if (user) {
+  document.getElementById("checkoutSummary").innerHTML = `
+    <p><strong>Name:</strong> ${user.fullName}</p>
+    <p><strong>Address:</strong> ${user.address}</p>
+  `;
+} else {
+  // Optionally redirect to login if no user info
+  window.location.href = "/login.html";
+}
+
+✅ Step 4: (Optional) Validate at checkout that info exists
+javascript
+Copy
+Edit
+if (!user?.fullName || !user?.address) {
+  alert("Please log in and complete your profile before checking out.");
+  window.location.href = "/login.html";
+}

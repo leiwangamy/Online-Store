@@ -33,36 +33,53 @@
     .cart-item {
       margin-bottom: 25px;
     }
+
+    #user-details {
+      margin: 10px 0;
+      font-style: italic;
+      color: #444;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>🛒 Your Cart</h1>
     <nav>
-      <a href="index.html">Home</a>
+      <a href="index.html">🏠 Home</a> |
+      <span id="user-info"></span>
+      <a href="#" id="logout-link" style="display: none;">(Logout)</a>
+      <a href="account.html" id="account-link" style="display: none;">👤 My Account</a>
     </nav>
+    <div id="user-details"></div>
   </header>
 
   <div id="custom-alert"></div>
-
   <div id="cart-items" class="cart-grid"></div>
-
   <div id="total" class="cart-total"></div>
 
   <script>
     function showTemporaryAlert(message, duration = 2000) {
       const alertBox = document.getElementById("custom-alert");
-      alertBox.textContent = message;
-      alertBox.style.display = "block";
-      setTimeout(() => {
-        alertBox.style.display = "none";
-      }, duration);
+      if (alertBox) {
+        alertBox.textContent = message;
+        alertBox.style.display = "block";
+        setTimeout(() => {
+          alertBox.style.display = "none";
+        }, duration);
+      }
     }
 
     function displayCart() {
       const cart = JSON.parse(localStorage.getItem("cart")) || [];
       const container = document.getElementById("cart-items");
+      const totalDiv = document.getElementById("total");
       container.innerHTML = "";
+      totalDiv.innerHTML = "";
+
+      if (cart.length === 0) {
+        container.innerHTML = "<p>Your cart is empty.</p>";
+        return;
+      }
 
       let total = 0;
       let gstTotal = 0;
@@ -92,37 +109,29 @@
               <p>Price: $${item.price.toFixed(2)}</p>
               <p>Quantity: ${quantity}</p>
               <p>GST: $${gst.toFixed(2)} | PST: $${pst.toFixed(2)} | Shipping: $${shipping.toFixed(2)}</p>
-              <button onclick="removeFromCart(${index})">Remove</button>
+              <button onclick="removeFromCart(${index})" class="checkout-button" style="background-color:#28a745;">Remove</button>
             </div>
           </div>
         `;
 
         container.appendChild(productDiv);
-      }); // ✅ Close forEach
+      });
 
-      // ✅ Display totals and checkout button
-      const totalDiv = document.getElementById("total");
       totalDiv.innerHTML = `
         <p>GST Total: $${gstTotal.toFixed(2)}</p>
         <p>PST Total: $${pstTotal.toFixed(2)}</p>
         <p>Shipping Total: $${shippingTotal.toFixed(2)}</p>
         <strong>Total: $${total.toFixed(2)}</strong><br/>
         <button id="checkout-btn" class="checkout-button">Proceed to Checkout</button>
+        <button onclick="window.location.href='index.html'" class="checkout-button" style="background-color:#2980b9;">Continue Shopping</button>
       `;
 
-      // ✅ Handle checkout click
       document.getElementById("checkout-btn").onclick = () => {
         if (cart.length === 0) {
           showTemporaryAlert("🛑 Your cart is empty.");
           return;
         }
-        // Simulate checkout and redirect
-        localStorage.removeItem("cart");
-        displayCart();
-        showTemporaryAlert("✅ Thank you! Your order has been placed.");
-        setTimeout(() => {
-          window.location.href = "checkout.html";
-        }, 1000);
+        window.location.href = "checkout.html";
       };
     }
 
@@ -137,8 +146,44 @@
       displayCart();
     }
 
-    // ✅ Load on page open
-    displayCart();
+    function updateUserHeader() {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userInfo = document.getElementById("user-info");
+      const logoutLink = document.getElementById("logout-link");
+      const accountLink = document.getElementById("account-link");
+      const userDetails = document.getElementById("user-details");
+
+      if (user && user.username) {
+        userInfo.textContent = `👤 Logged in as: ${user.username}`;
+        logoutLink.style.display = "inline";
+        accountLink.style.display = "inline";
+
+        if (user.fullName || user.address) {
+          userDetails.innerHTML = `
+            <strong>Name:</strong> ${user.fullName || "N/A"}<br>
+            <strong>Address:</strong> ${user.address || "N/A"}
+          `;
+        }
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("user");
+      localStorage.removeItem("cart");
+      window.location.href = "/login.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      displayCart();
+      updateUserHeader();
+      const logoutLink = document.getElementById("logout-link");
+      if (logoutLink) {
+        logoutLink.addEventListener("click", (e) => {
+          e.preventDefault();
+          logout();
+        });
+      }
+    });
   </script>
 </body>
 </html>

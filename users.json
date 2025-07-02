@@ -6,5 +6,11 @@
   {
     "username": "abcde",
     "password": "12345"
+  },
+  {
+    "username": "mya@hotmail.com",
+    "password": "8888",
+    "fullName": "my namea",
+    "address": "123 Street"
   }
 ]

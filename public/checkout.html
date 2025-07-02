@@ -41,38 +41,59 @@
       border: 1px solid #8bc34a;
       display: none;
     }
+    /* ✅ Optional spacing for continue link */
+    .continue-link {
+      margin-top: 20px;
+      display: inline-block;
+      font-weight: bold;
+      color: green;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
-  <h2>Checkout</h2>
+  <div class="container">
+    <h2>Checkout</h2>
 
-  <form id="checkout-form">
-    <div class="form-group">
-      <label for="name">Full Name</label>
-      <input id="name" required />
-    </div>
+    <form id="checkout-form">
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input id="name" required />
+      </div>
 
-    <div class="form-group">
-      <label for="address">Shipping Address</label>
-      <input id="address" required />
-    </div>
+      <div class="form-group">
+        <label for="address">Shipping Address</label>
+        <input id="address" required />
+      </div>
 
-    <div class="form-group">
-      <label for="payment">Payment Method</label>
-      <select id="payment" required>
-        <option value="">--Select--</option>
-        <option value="card">Credit Card</option>
-        <option value="paypal">PayPal</option>
-        <option value="cod">Cash on Delivery</option>
-      </select>
-    </div>
+      <div class="form-group">
+        <label for="payment">Payment Method</label>
+        <select id="payment" required>
+          <option value="">--Select--</option>
+          <option value="card">Credit Card</option>
+          <option value="paypal">PayPal</option>
+          <option value="cod">Cash on Delivery</option>
+        </select>
+      </div>
 
-    <button type="submit">Confirm Order</button>
-  </form>
+      <button type="submit">Confirm Order</button>
+    </form>
 
-  <div id="confirmation"></div>
+    <div id="confirmation"></div>
+  </div>
 
   <script>
+    // ✅ Auto-fill user info on page load
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("/api/user")
+        .then(res => res.json())
+        .then(data => {
+          if (data.fullName) document.getElementById("name").value = data.fullName;
+          if (data.address) document.getElementById("address").value = data.address;
+        });
+    });
+
+    // ✅ Handle order confirmation
     document.getElementById("checkout-form").onsubmit = function (e) {
       e.preventDefault();
       const name = document.getElementById("name").value;
@@ -81,9 +102,10 @@
 
       if (!name || !address || !payment) return;
 
-      // Normally this would send data to the server
+      // ✅ Just clear cart (not session)
       localStorage.removeItem("cart");
 
+      // ✅ Show confirmation and link back to home
       const confirmation = document.getElementById("confirmation");
       confirmation.innerHTML = `
         <h3>✅ Order Confirmed!</h3>
@@ -91,6 +113,7 @@
         <p><strong>Address:</strong> ${address}</p>
         <p><strong>Payment:</strong> ${payment}</p>
         <p>Thank you for your purchase!</p>
+        <a class="continue-link" href="index.html">← Continue Shopping</a>
       `;
       confirmation.style.display = "block";
       document.getElementById("checkout-form").style.display = "none";

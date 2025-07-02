@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product Details</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .product-view {
+      max-width: 800px;
+      margin: 40px auto;
+      text-align: center;
+    }
+
+    #product-image {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .slideshow-controls {
+      margin-bottom: 20px;
+    }
+
+    .slideshow-controls button {
+      margin: 0 10px;
+      padding: 8px 12px;
+      font-size: 16px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .product-info {
+      font-size: 18px;
+    }
+
+    .add-to-cart-btn {
+      background-color: #2a8f2a;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="product-view">
+    <img id="product-image" src="" alt="Product" />
+    <div class="slideshow-controls">
+      <button onclick="prevImage()">⏮️ Prev</button>
+      <button onclick="nextImage()">Next ⏭️</button>
+    </div>
+    <div class="product-info">
+      <h2 id="product-name"></h2>
+      <p id="product-description"></p>
+      <p><strong id="product-price"></strong></p>
+      <button class="add-to-cart-btn" id="add-to-cart-btn">Add to Cart</button>
+      <br />
+      <a href="index.html" style="display: inline-block; margin-top: 15px; padding: 10px 20px; background-color: #007bff; color: white; border-radius: 6px; text-decoration: none;">
+        ← Continue Shopping
+      </a>
+    </div>
+  </div>
+
+  <script>
+    let product = null;
+    let currentImageIndex = 0;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = parseInt(urlParams.get('id'));
+
+    function updateImage() {
+      const img = document.getElementById('product-image');
+      if (product && product.images?.length > 0) {
+        img.src = product.images[currentImageIndex];
+      }
+    }
+
+    function prevImage() {
+      if (product && product.images?.length > 0) {
+        currentImageIndex = (currentImageIndex - 1 + product.images.length) % product.images.length;
+        updateImage();
+      }
+    }
+
+    function nextImage() {
+      if (product && product.images?.length > 0) {
+        currentImageIndex = (currentImageIndex + 1) % product.images.length;
+        updateImage();
+      }
+    }
+
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(products => {
+        product = products.find(p => p.id === productId);
+        if (!product) return;
+
+        updateImage();
+        document.getElementById('product-name').textContent = product.name;
+        document.getElementById('product-description').textContent = product.description;
+        document.getElementById('product-price').textContent = `$${product.price.toFixed(2)}`;
+
+        document.getElementById('add-to-cart-btn').onclick = () => {
+          const cart = JSON.parse(localStorage.getItem('cart')) || [];
+          const existing = cart.find(p => p.id === product.id);
+          if (existing) {
+            existing.quantity += 1;
+          } else {
+            cart.push({ ...product, quantity: 1 });
+          }
+          localStorage.setItem('cart', JSON.stringify(cart));
+          alert("✅ Added to cart!");
+          window.location.href = "cart.html";
+        };
+      });
+  </script>
+</body>
+</html>
