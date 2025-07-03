@@ -75,6 +75,22 @@
     </nav>
   </header>
 
+  <div class="filters-container">
+    <div class="search-container">
+      <input type="text" id="search-input" placeholder="Search products..." />
+      <button id="search-btn">🔍</button>
+    </div>
+
+    <div class="category-filter">
+      <label for="category-select">Filter by Category:</label>
+      <select id="category-select">
+        <option value="">All Categories</option>
+        <option value="skincare">Skincare</option>
+        <option value="health">Health</option>
+      </select>
+    </div>
+  </div>
+
   <div id="product-list" class="product-grid"></div>
 
   <div id="product-modal" class="modal">
@@ -101,13 +117,18 @@
       }
     }
 
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(products => {
-        const list = document.getElementById('product-list');
-        list.innerHTML = '';
+    let allProducts = [];
 
-        products.forEach(product => {
+    function displayProducts(products) {
+      const list = document.getElementById('product-list');
+      list.innerHTML = '';
+
+      if (products.length === 0) {
+        list.innerHTML = '<p style="text-align: center; margin: 40px;">No products found.</p>';
+        return;
+      }
+
+      products.forEach(product => {
           const div = document.createElement('div');
           div.className = 'product-card';
 
@@ -182,6 +203,52 @@
           div.appendChild(button);
           list.appendChild(div);
         });
+    }
+
+    function filterProducts() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const selectedCategory = document.getElementById('category-select').value;
+
+      let filteredProducts = allProducts;
+
+      // Filter by search term
+      if (searchTerm) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.name.toLowerCase().includes(searchTerm) ||
+          product.description.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      // Filter by category
+      if (selectedCategory) {
+        filteredProducts = filteredProducts.filter(product => 
+          product.category === selectedCategory
+        );
+      }
+
+      displayProducts(filteredProducts);
+    }
+
+    // Load products and set up event listeners
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(products => {
+        allProducts = products;
+        displayProducts(products);
+
+        // Set up search functionality
+        document.getElementById('search-btn').addEventListener('click', filterProducts);
+        document.getElementById('search-input').addEventListener('keyup', (e) => {
+          if (e.key === 'Enter') {
+            filterProducts();
+          }
+        });
+
+        // Set up category filter
+        document.getElementById('category-select').addEventListener('change', filterProducts);
+
+        // Real-time search as user types
+        document.getElementById('search-input').addEventListener('input', filterProducts);
       });
 
     function updateCartCount() {
