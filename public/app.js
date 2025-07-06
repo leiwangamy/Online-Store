@@ -174,6 +174,7 @@ function addNewCategory() {
   updateCategoryDropdown();
   updateCategoryTags();
   
+  // Only show alert when manually adding a category (not during edits)
   alert(`Category "${categoryName}" added! You can now create products with this category.`);
 }
 
