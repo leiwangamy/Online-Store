@@ -111,14 +111,18 @@ function saveChanges(product) {
     document.getElementById('product-form').reset();
     updateCategoryAutocomplete();
     updateCategoryDropdown();
+    updateCategoryTags();
   });
 }
 
 function updateCategoryAutocomplete() {
   const datalist = document.getElementById('category-list');
-  if (datalist) datalist.innerHTML = '';
-  const allCategories = products.map(p => p.category);
-  const uniqueCategories = [...new Set(allCategories)];
+  if (!datalist) return;
+  
+  datalist.innerHTML = '';
+  const allCategories = products.filter(p => p.active !== false).map(p => p.category);
+  const uniqueCategories = [...new Set(allCategories.filter(cat => cat))]; // filter out empty categories
+  
   uniqueCategories.forEach(cat => {
     const opt = document.createElement('option');
     opt.value = cat;
@@ -158,8 +162,9 @@ function addNewCategory() {
   document.getElementById('category').value = categoryName;
   input.value = '';
   
-  // Update the autocomplete
+  // Update all dropdowns and lists immediately
   updateCategoryAutocomplete();
+  updateCategoryDropdown();
   updateCategoryTags();
   
   alert(`Category "${categoryName}" added! You can now create products with this category.`);
@@ -169,8 +174,15 @@ function updateCategoryTags() {
   const tagsContainer = document.getElementById('category-tags');
   if (!tagsContainer) return;
   
-  const categories = [...new Set(products.filter(p => p.active !== false).map(p => p.category))];
-  tagsContainer.innerHTML = categories.map(cat => 
+  const productCategories = [...new Set(products.filter(p => p.active !== false).map(p => p.category).filter(cat => cat))];
+  const currentCategory = document.getElementById('category')?.value.trim();
+  
+  // Include current form category if it's new
+  const allCategories = currentCategory && !productCategories.includes(currentCategory) 
+    ? [...productCategories, currentCategory] 
+    : productCategories;
+  
+  tagsContainer.innerHTML = allCategories.map(cat => 
     `<span style="background:#e3f2fd; padding:4px 8px; margin:2px; border-radius:4px; display:inline-block;">${cat}</span>`
   ).join('');
 }
