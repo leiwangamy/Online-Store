@@ -173,12 +173,12 @@
         category: document.getElementById('category').value,
         price: parseFloat(document.getElementById('price').value),
         description: document.getElementById('description').value,
-        media: document.getElementById('media').value.split(',').map(x => x.trim()),
+        media: document.getElementById('media').value ? document.getElementById('media').value.split(',').map(x => x.trim()).filter(x => x) : [],
         stock: parseInt(document.getElementById('stock').value),
         gst: parseFloat(document.getElementById('gst').value),
         pst: parseFloat(document.getElementById('pst').value),
         shipping: parseFloat(document.getElementById('shipping').value),
-        tags: document.getElementById('tags').value.split(',').map(x => x.trim()),
+        tags: document.getElementById('tags').value ? document.getElementById('tags').value.split(',').map(x => x.trim()).filter(x => x) : [],
         active: true
       };
 

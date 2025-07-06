@@ -88,6 +88,52 @@ app.post('/register', (req, res) => {
   `);
 });
 
+// ✅ POST: Create new product
+app.post('/api/products', (req, res) => {
+  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
+  const newProduct = req.body;
+  
+  // Assign new ID if not provided
+  if (!newProduct.id) {
+    const maxId = products.length > 0 ? Math.max(...products.map(p => p.id)) : 0;
+    newProduct.id = maxId + 1;
+  }
+  
+  products.push(newProduct);
+  fs.writeFileSync('products.json', JSON.stringify(products, null, 2));
+  res.json(newProduct);
+});
+
+// ✅ PUT: Update existing product
+app.put('/api/products/:id', (req, res) => {
+  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
+  const productId = parseInt(req.params.id);
+  const updatedProduct = req.body;
+  
+  const index = products.findIndex(p => p.id === productId);
+  if (index !== -1) {
+    products[index] = { ...products[index], ...updatedProduct };
+    fs.writeFileSync('products.json', JSON.stringify(products, null, 2));
+    res.json(products[index]);
+  } else {
+    res.status(404).json({ error: 'Product not found' });
+  }
+});
+
+// ✅ DELETE: Delete product
+app.delete('/api/products/:id', (req, res) => {
+  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
+  const productId = parseInt(req.params.id);
+  
+  const filteredProducts = products.filter(p => p.id !== productId);
+  if (filteredProducts.length !== products.length) {
+    fs.writeFileSync('products.json', JSON.stringify(filteredProducts, null, 2));
+    res.json({ success: true });
+  } else {
+    res.status(404).json({ error: 'Product not found' });
+  }
+});
+
 // ✅ GET: Logout user
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
