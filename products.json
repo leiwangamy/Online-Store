@@ -3,7 +3,7 @@
     "id": 1,
     "name": "Aloe Vera Gel",
     "category": "Skin Care",
-    "price": 19.50,
+    "price": 19.5,
     "description": "Soothing and moisturizing aloe vera gel.",
     "media": [
       "/images/aloe1.jpg",
@@ -12,10 +12,15 @@
     ],
     "gst": 0.05,
     "pst": 0.07,
-    "shipping": 2.50,
-    "tags": ["soothing", "natural", "gel"],
+    "shipping": 2.5,
+    "tags": [
+      "soothing",
+      "natural",
+      "gel"
+    ],
     "stock": 50,
-    "active": true
+    "active": true,
+    "deletedAt": "2025-07-06T04:46:27.743Z"
   },
   {
     "id": 2,
@@ -28,9 +33,13 @@
       "/images/ointment2.jpg"
     ],
     "gst": 0.05,
-    "pst": 0.00,
-    "shipping": 2.00,
-    "tags": ["relief", "ointment", "natural"],
+    "pst": 0,
+    "shipping": 2,
+    "tags": [
+      "relief",
+      "ointment",
+      "natural"
+    ],
     "stock": 75,
     "active": true
   },
@@ -38,7 +47,7 @@
     "id": 3,
     "name": "Facial Mask",
     "category": "Beauty",
-    "price": 19.00,
+    "price": 19,
     "description": "Refreshing facial mask for clear skin.",
     "media": [
       "/images/mask1.png",
@@ -48,7 +57,11 @@
     "gst": 0.05,
     "pst": 0.07,
     "shipping": 2.75,
-    "tags": ["face", "mask", "refreshing"],
+    "tags": [
+      "face",
+      "mask",
+      "refreshing"
+    ],
     "stock": 20,
     "active": true
   }

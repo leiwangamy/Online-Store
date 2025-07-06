@@ -2,223 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Product Editor</title>
+  <title>Admin Dashboard</title>
   <link rel="stylesheet" href="style.css" />
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-    }
-    form {
-      margin-bottom: 30px;
-    }
-    input, textarea, select {
-      display: block;
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 8px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    .actions button {
-      margin-right: 5px;
-    }
-    #search-box,
-    #category-sort,
-    #sort-order {
-      margin-bottom: 10px;
-    }
-  </style>
 </head>
 <body>
-  <h1>Admin - Manage Products</h1>
+  <h1>🛠 Admin Dashboard</h1>
 
-  <input type="text" id="search-box" placeholder="Search by name or ID..." />
-  <select id="sort-order">
-    <option value="">Sort by default</option>
-    <option value="id">Sort by ID</option>
-    <option value="name">Sort by Name (A-Z)</option>
-    <option value="category">Sort by Category (A-Z)</option>
-  </select>
-  <select id="category-sort">
-    <option value="">Filter by category</option>
-  </select>
+  <!-- Search and Sort Controls -->
+  <div class="controls">
+    🔍 Search:
+    <input id="search-box" type="text" placeholder="Search by name or ID" />
 
-  <form id="product-form">
-    <input type="hidden" id="product-id">
-    <input type="text" id="name" placeholder="Product Name" required />
-    <input type="text" id="category" placeholder="Category" />
-    <input type="number" id="price" placeholder="Price" step="0.01" required />
-    <textarea id="description" placeholder="Description"></textarea>
-    <input type="text" id="media" placeholder="Comma-separated image/video URLs" />
-    <input type="number" id="stock" placeholder="Stock Quantity" />
-    <input type="number" id="gst" placeholder="GST" step="0.01" />
-    <input type="number" id="pst" placeholder="PST" step="0.01" />
-    <input type="number" id="shipping" placeholder="Shipping Cost" step="0.01" />
-    <input type="text" id="tags" placeholder="Comma-separated tags" />
-    <button type="submit">Save Product</button>
-  </form>
+    📂 Category Filter:
+    <select id="category-sort"></select>
 
-  <table id="product-table">
+    🔃 Sort By:
+    <select id="sort-order">
+      <option value="id">ID</option>
+      <option value="name">Name</option>
+      <option value="category">Category</option>
+    </select>
+  </div>
+
+  <!-- Product Table -->
+  <table id="product-table" border="1" cellpadding="8">
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Category</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Actions</th>
+        <th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 
-  <script>
-    let products = [];
+  <hr />
 
-    function assignNextId() {
-      const ids = products.map(p => p.id);
-      return ids.length ? Math.max(...ids) + 1 : 1;
-    }
+  <!-- Add/Edit Product Form -->
+  <form id="product-form">
+    <h2>Add or Edit Product</h2>
+    <input type="hidden" id="product-id" />
 
-    function renderTable(filtered = products) {
-      const sortBy = document.getElementById('sort-order')?.value;
-      const tbody = document.querySelector('#product-table tbody');
-      tbody.innerHTML = '';
+    🏷 Name: <input id="name" required /><br />
+    📁 Category: 
+    <input id="category" list="category-list" required />
+    <datalist id="category-list"></datalist><br />
 
-      let sorted = [...filtered];
-      if (sortBy === 'id') sorted.sort((a, b) => a.id - b.id);
-      else if (sortBy === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
-      else if (sortBy === 'category') sorted.sort((a, b) => a.category.localeCompare(b.category));
+    💲 Price: <input id="price" type="number" step="0.01" required /><br />
+    📝 Description: <input id="description" /><br />
+    🖼 Media (comma-separated): <input id="media" /><br />
+    📦 Stock: <input id="stock" type="number" required /><br />
+    💰 GST: <input id="gst" type="number" step="0.01" /><br />
+    💵 PST: <input id="pst" type="number" step="0.01" /><br />
+    🚚 Shipping: <input id="shipping" type="number" step="0.01" /><br />
+    🏷 Tags (comma-separated): <input id="tags" /><br />
 
-      sorted.forEach(p => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${p.id}</td>
-          <td>${p.name}</td>
-          <td>${p.category}</td>
-          <td>$${p.price.toFixed(2)}</td>
-          <td>${p.stock}</td>
-          <td class="actions">
-            <button onclick='editProduct(${p.id})'>Edit</button>
-            <button onclick='deleteProduct(${p.id})'>Delete</button>
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
+    <button type="submit">Save Changes</button>
+    <button type="reset">Clear Form</button>
+  </form>
 
-    function editProduct(id) {
-      const p = products.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('product-id').value = p.id;
-      document.getElementById('name').value = p.name;
-      document.getElementById('category').value = p.category;
-      document.getElementById('price').value = p.price;
-      document.getElementById('description').value = p.description;
-      document.getElementById('media').value = (p.media || []).join(',');
-      document.getElementById('stock').value = p.stock;
-      document.getElementById('gst').value = p.gst;
-      document.getElementById('pst').value = p.pst;
-      document.getElementById('shipping').value = p.shipping;
-      document.getElementById('tags').value = (p.tags || []).join(',');
-    }
+  <hr />
 
-    function deleteProduct(id) {
-      if (confirm("Are you sure to delete this product?")) {
-        fetch(`/api/products/${id}`, {
-          method: 'DELETE'
-        })
-        .then(() => {
-          products = products.filter(p => p.id !== id);
-          renderTable();
-        });
-      }
-    }
+  <!-- Restore Deleted Products -->
+  <h2>🗃 Recently Deleted (within 30 days)</h2>
+  <div id="restore-list"></div>
 
-    function saveChanges(product) {
-      const method = product.id && products.find(p => p.id === product.id) ? 'PUT' : 'POST';
-      const url = method === 'POST' ? '/api/products' : `/api/products/${product.id}`;
-      fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product)
-      })
-      .then(res => res.json())
-      .then(saved => {
-        const index = products.findIndex(p => p.id === saved.id);
-        if (index > -1) {
-          products[index] = saved;
-        } else {
-          products.push(saved);
-        }
-        renderTable();
-        document.getElementById('product-form').reset();
-      });
-    }
-
-    document.getElementById('product-form').addEventListener('submit', e => {
-      e.preventDefault();
-      let id = document.getElementById('product-id').value;
-      const product = {
-        id: id ? Number(id) : assignNextId(),
-        name: document.getElementById('name').value,
-        category: document.getElementById('category').value,
-        price: parseFloat(document.getElementById('price').value),
-        description: document.getElementById('description').value,
-        media: document.getElementById('media').value ? document.getElementById('media').value.split(',').map(x => x.trim()).filter(x => x) : [],
-        stock: parseInt(document.getElementById('stock').value),
-        gst: parseFloat(document.getElementById('gst').value),
-        pst: parseFloat(document.getElementById('pst').value),
-        shipping: parseFloat(document.getElementById('shipping').value),
-        tags: document.getElementById('tags').value ? document.getElementById('tags').value.split(',').map(x => x.trim()).filter(x => x) : [],
-        active: true
-      };
-
-      saveChanges(product);
-    });
-
-    document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById('search-box').addEventListener('input', e => {
-        const keyword = e.target.value.toLowerCase();
-        const filtered = products.filter(p =>
-          p.name.toLowerCase().includes(keyword) ||
-          p.id.toString().includes(keyword)
-        );
-        renderTable(filtered);
-      });
-
-      document.getElementById('category-sort').addEventListener('change', e => {
-        const selected = e.target.value;
-        const filtered = selected ? products.filter(p => p.category === selected) : products;
-        renderTable(filtered);
-      });
-
-      document.getElementById('sort-order').addEventListener('change', () => renderTable());
-
-      fetch('/api/products')
-        .then(res => res.json())
-        .then(data => {
-          products = data;
-          renderTable();
-
-          const categorySelect = document.getElementById('category-sort');
-          const uniqueCategories = [...new Set(products.map(p => p.category))];
-          uniqueCategories.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.textContent = cat;
-            categorySelect.appendChild(opt);
-          });
-        });
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

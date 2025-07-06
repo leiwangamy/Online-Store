@@ -1,148 +1,95 @@
+// server.js with support for full CRUD, soft delete, and restore functionality
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-
 const app = express();
+const PORT = 3000;
 
-// ✅ Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json()); // For JSON requests like fetch
+const FILE_PATH = path.join(__dirname, 'products.json');
+
+app.use(express.json());
 app.use(express.static('public'));
-app.use(session({
-  secret: 'mySecretKey',
-  resave: false,
-  saveUninitialized: true
-}));
 
-// ✅ GET: Serve all products
+// Helper to load products
+function loadProducts() {
+  if (!fs.existsSync(FILE_PATH)) return [];
+  const raw = fs.readFileSync(FILE_PATH, 'utf8');
+  return JSON.parse(raw);
+}
+
+// Helper to save products
+function saveProducts(products) {
+  fs.writeFileSync(FILE_PATH, JSON.stringify(products, null, 2));
+}
+
+// GET all products
 app.get('/api/products', (req, res) => {
-  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
-  res.json(products);
-});
-
-// ✅ GET: Return current user info if logged in
-app.get('/api/user', (req, res) => {
-  if (req.session.user) {
-    const { username, fullName, address } = req.session.user;
-    res.json({ username, fullName, address });
-  } else {
-    res.status(401).json({ error: 'Not logged in' });
+  try {
+    const products = loadProducts();
+    res.json(products);
+  } catch {
+    res.status(500).send("Error loading products");
   }
 });
 
-// ✅ POST: Login using fetch (JSON body)
-app.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  const users = JSON.parse(fs.readFileSync('users.json', 'utf-8'));
-
-  const user = users.find(u =>
-    u.username.trim() === username.trim() &&
-    u.password.trim() === password.trim()
-  );
-
-  if (user) {
-    req.session.user = user;
-    res.json({
-      username: user.username,
-      fullName: user.fullName || '',
-      address: user.address || ''
-    });
-  } else {
-    res.status(401).json({ message: "Invalid username or password" });
-  }
-});
-
-// ✅ POST: Register new user
-app.post('/register', (req, res) => {
-  const { fullName, address, email, password } = req.body;
-  const usersFile = 'users.json';
-
-  let users = [];
-  if (fs.existsSync(usersFile)) {
-    users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
-  }
-
-  const exists = users.find(u => u.username === email.trim());
-  if (exists) {
-    return res.send(`
-      <p style="color:red;">⚠️ This email is already registered.</p>
-      <a href="/register.html">Try Again</a>
-    `);
-  }
-
-  const newUser = {
-    username: email.trim(),
-    password: password.trim(),
-    fullName: fullName.trim(),
-    address: address.trim()
-  };
-
-  users.push(newUser);
-  fs.writeFileSync(usersFile, JSON.stringify(users, null, 2), 'utf-8');
-
-  res.send(`
-    <p style="color:green;">✅ Registration successful! Redirecting to login...</p>
-    <script>setTimeout(() => location.href='/login.html', 2000);</script>
-  `);
-});
-
-// ✅ POST: Create new product
+// POST new product
 app.post('/api/products', (req, res) => {
-  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
-  const newProduct = req.body;
-  
-  // Assign new ID if not provided
-  if (!newProduct.id) {
-    const maxId = products.length > 0 ? Math.max(...products.map(p => p.id)) : 0;
-    newProduct.id = maxId + 1;
+  try {
+    const products = loadProducts();
+    const ids = products.map(p => p.id);
+    const nextId = ids.length ? Math.max(...ids) + 1 : 1;
+    const newProduct = { ...req.body, id: nextId };
+    products.push(newProduct);
+    saveProducts(products);
+    res.json(newProduct);
+  } catch {
+    res.status(500).send("Failed to save product");
   }
-  
-  products.push(newProduct);
-  fs.writeFileSync('products.json', JSON.stringify(products, null, 2));
-  res.json(newProduct);
 });
 
-// ✅ PUT: Update existing product
+// PUT update existing product
 app.put('/api/products/:id', (req, res) => {
-  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
-  const productId = parseInt(req.params.id);
-  const updatedProduct = req.body;
-  
-  const index = products.findIndex(p => p.id === productId);
-  if (index !== -1) {
-    products[index] = { ...products[index], ...updatedProduct };
-    fs.writeFileSync('products.json', JSON.stringify(products, null, 2));
+  try {
+    const products = loadProducts();
+    const index = products.findIndex(p => p.id == req.params.id);
+    if (index === -1) return res.status(404).send("Product not found");
+    products[index] = { ...products[index], ...req.body };
+    saveProducts(products);
     res.json(products[index]);
-  } else {
-    res.status(404).json({ error: 'Product not found' });
+  } catch {
+    res.status(500).send("Failed to update product");
   }
 });
 
-// ✅ DELETE: Delete product
+// DELETE soft delete a product
 app.delete('/api/products/:id', (req, res) => {
-  const products = JSON.parse(fs.readFileSync('products.json', 'utf-8'));
-  const productId = parseInt(req.params.id);
-  
-  const filteredProducts = products.filter(p => p.id !== productId);
-  if (filteredProducts.length !== products.length) {
-    fs.writeFileSync('products.json', JSON.stringify(filteredProducts, null, 2));
-    res.json({ success: true });
-  } else {
-    res.status(404).json({ error: 'Product not found' });
+  try {
+    const products = loadProducts();
+    const product = products.find(p => p.id == req.params.id);
+    if (!product) return res.status(404).send("Not found");
+    product.active = false;
+    product.deletedAt = new Date().toISOString();
+    saveProducts(products);
+    res.json(product);
+  } catch {
+    res.status(500).send("Failed to delete product");
   }
 });
 
-// ✅ GET: Logout user
-app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/login.html');
-  });
+// Restore soft-deleted product
+app.post('/api/products/:id/restore', (req, res) => {
+  try {
+    const products = loadProducts();
+    const product = products.find(p => p.id == req.params.id);
+    if (!product) return res.status(404).send("Not found");
+    product.active = true;
+    delete product.deletedAt;
+    saveProducts(products);
+    res.json(product);
+  } catch {
+    res.status(500).send("Failed to restore product");
+  }
 });
 
-// ✅ Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🟢 Server running at http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

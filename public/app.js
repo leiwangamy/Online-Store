@@ -1,4 +1,4 @@
-// app.js for admin product editor
+// app.js for admin product editor with category autocomplete, soft delete, timestamp, and restore support
 
 let products = [];
 
@@ -12,7 +12,7 @@ function renderTable(filtered = products) {
   const tbody = document.querySelector('#product-table tbody');
   tbody.innerHTML = '';
 
-  let sorted = [...filtered];
+  let sorted = [...filtered].filter(p => p.active !== false); // skip soft deleted
   if (sortBy === 'id') sorted.sort((a, b) => a.id - b.id);
   else if (sortBy === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
   else if (sortBy === 'category') sorted.sort((a, b) => a.category.localeCompare(b.category));
@@ -32,6 +32,27 @@ function renderTable(filtered = products) {
     `;
     tbody.appendChild(row);
   });
+
+  renderRestoreList();
+}
+
+function renderRestoreList() {
+  const restoreList = document.getElementById('restore-list');
+  if (!restoreList) return;
+  restoreList.innerHTML = '';
+  const expired = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 days
+
+  products
+    .filter(p => p.active === false && (!p.deletedAt || new Date(p.deletedAt).getTime() >= expired))
+    .forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'restore-item';
+      row.innerHTML = `
+        <strong>${p.name}</strong> (ID: ${p.id})
+        <button onclick='restoreProduct(${p.id})'>Restore</button>
+      `;
+      restoreList.appendChild(row);
+    });
 }
 
 function editProduct(id) {
@@ -52,13 +73,21 @@ function editProduct(id) {
 
 function deleteProduct(id) {
   if (confirm("Are you sure to delete this product?")) {
-    fetch(`/api/products/${id}`, {
-      method: 'DELETE'
-    })
-    .then(() => {
-      products = products.filter(p => p.id !== id);
-      renderTable();
-    });
+    const p = products.find(p => p.id === id);
+    if (p) {
+      p.active = false;
+      p.deletedAt = new Date().toISOString();
+      saveChanges(p);
+    }
+  }
+}
+
+function restoreProduct(id) {
+  const p = products.find(p => p.id === id);
+  if (p) {
+    p.active = true;
+    delete p.deletedAt;
+    saveChanges(p);
   }
 }
 
@@ -80,6 +109,33 @@ function saveChanges(product) {
     }
     renderTable();
     document.getElementById('product-form').reset();
+    updateCategoryAutocomplete();
+    updateCategoryDropdown();
+  });
+}
+
+function updateCategoryAutocomplete() {
+  const datalist = document.getElementById('category-list');
+  if (datalist) datalist.innerHTML = '';
+  const allCategories = products.map(p => p.category);
+  const uniqueCategories = [...new Set(allCategories)];
+  uniqueCategories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    datalist.appendChild(opt);
+  });
+}
+
+function updateCategoryDropdown() {
+  const categorySelect = document.getElementById('category-sort');
+  if (!categorySelect) return;
+  categorySelect.innerHTML = '<option value="">All</option>';
+  const categories = [...new Set(products.filter(p => p.active !== false).map(p => p.category))];
+  categories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat;
+    categorySelect.appendChild(opt);
   });
 }
 
@@ -92,12 +148,12 @@ document.getElementById('product-form').addEventListener('submit', e => {
     category: document.getElementById('category').value,
     price: parseFloat(document.getElementById('price').value),
     description: document.getElementById('description').value,
-    media: document.getElementById('media').value.split(',').map(x => x.trim()),
+    media: document.getElementById('media').value ? document.getElementById('media').value.split(',').map(x => x.trim()) : [],
     stock: parseInt(document.getElementById('stock').value),
     gst: parseFloat(document.getElementById('gst').value),
     pst: parseFloat(document.getElementById('pst').value),
     shipping: parseFloat(document.getElementById('shipping').value),
-    tags: document.getElementById('tags').value.split(',').map(x => x.trim()),
+    tags: document.getElementById('tags').value ? document.getElementById('tags').value.split(',').map(x => x.trim()) : [],
     active: true
   };
 
@@ -127,14 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .then(data => {
       products = data;
       renderTable();
-
-      const categorySelect = document.getElementById('category-sort');
-      const uniqueCategories = [...new Set(products.map(p => p.category))];
-      uniqueCategories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        categorySelect.appendChild(opt);
-      });
+      updateCategoryAutocomplete();
+      updateCategoryDropdown();
     });
 });
