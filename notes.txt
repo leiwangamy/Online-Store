@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>🛠 Admin Dashboard</h1>
+
+  <!-- Search and Sort Controls -->
+  <div class="controls">
+    🔍 Search:
+    <input id="search-box" type="text" placeholder="Search by name or ID" />
+
+    📂 Category Filter:
+    <select id="category-sort"></select>
+
+    🔃 Sort By:
+    <select id="sort-order">
+      <option value="id">ID</option>
+      <option value="name">Name</option>
+      <option value="category">Category</option>
+    </select>
+  </div>
+
+  <!-- Product Table -->
+  <table id="product-table" border="1" cellpadding="8">
+    <thead>
+      <tr>
+        <th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <hr />
+
+  <!-- Category Management -->
+  <div class="category-management">
+    <h2>📁 Category Management</h2>
+    <div class="category-controls">
+      <input type="text" id="new-category-input" placeholder="Enter new category name" />
+      <button type="button" onclick="addNewCategory()">Add Category</button>
+    </div>
+    <div id="existing-categories">
+      <strong>Existing Categories:</strong>
+      <div id="category-tags"></div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- Add/Edit Product Form -->
+  <form id="product-form">
+    <h2>Add or Edit Product</h2>
+    <input type="hidden" id="product-id" />
+
+    🏷 Name: <input id="name" required /><br />
+    📁 Category: 
+    <input id="category" list="category-list" autocomplete="off" required />
+    <datalist id="category-list"></datalist><br />
+
+    💲 Price: <input id="price" type="number" step="0.01" required /><br />
+    📝 Description: <input id="description" /><br />
+    🖼 Media (comma-separated): <input id="media" /><br />
+    📦 Stock: <input id="stock" type="number" required /><br />
+    💰 GST: <input id="gst" type="number" step="0.01" /><br />
+    💵 PST: <input id="pst" type="number" step="0.01" /><br />
+    🚚 Shipping: <input id="shipping" type="number" step="0.01" /><br />
+    🏷 Tags (comma-separated): <input id="tags" /><br />
+
+    <button type="submit">Save Changes</button>
+    <button type="reset">Clear Form</button>
+  </form>
+
+  <hr />
+
+  <!-- Restore Deleted Products -->
+  <h2>🗃 Recently Deleted (within 30 days)</h2>
+  <div id="restore-list"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

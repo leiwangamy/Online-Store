@@ -8,14 +8,13 @@
 <body>
   <h1>🛠 Admin Dashboard</h1>
 
-  <!-- Search and Sort Controls -->
-  <div class="controls">
-    🔍 Search:
-    <input id="search-box" type="text" placeholder="Search by name or ID" />
-
-    📂 Category Filter:
-    <select id="category-sort"></select>
-
+  <!-- Search, Filter, Sort -->
+  <div>
+    🔍 Search: <input type="text" id="search-box" placeholder="Search by name or ID">
+    📁 Category Filter:
+    <select id="category-sort">
+      <option value="">All</option>
+    </select>
     🔃 Sort By:
     <select id="sort-order">
       <option value="id">ID</option>
@@ -25,7 +24,7 @@
   </div>
 
   <!-- Product Table -->
-  <table id="product-table" border="1" cellpadding="8">
+  <table id="product-table" border="1">
     <thead>
       <tr>
         <th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th>
@@ -34,51 +33,40 @@
     <tbody></tbody>
   </table>
 
-  <hr />
+  <hr>
 
   <!-- Category Management -->
-  <div class="category-management">
-    <h2>📁 Category Management</h2>
-    <div class="category-controls">
-      <input type="text" id="new-category-input" placeholder="Enter new category name" />
-      <button type="button" onclick="addNewCategory()">Add Category</button>
-    </div>
-    <div id="existing-categories">
-      <strong>Existing Categories:</strong>
-      <div id="category-tags"></div>
-    </div>
-  </div>
+  <h2>📂 Category Management</h2>
+  <input type="text" id="category-add-input" placeholder="Enter new category name">
+  <button onclick="document.getElementById('category').value = document.getElementById('category-add-input').value;">Add Category</button>
 
-  <hr />
+  <hr>
 
-  <!-- Add/Edit Product Form -->
+  <!-- Add/Edit Form -->
+  <h2>Add or Edit Product</h2>
   <form id="product-form">
-    <h2>Add or Edit Product</h2>
-    <input type="hidden" id="product-id" />
-
-    🏷 Name: <input id="name" required /><br />
-    📁 Category: 
-    <input id="category" list="category-list" autocomplete="off" required />
-    <datalist id="category-list"></datalist><br />
-
-    💲 Price: <input id="price" type="number" step="0.01" required /><br />
-    📝 Description: <input id="description" /><br />
-    🖼 Media (comma-separated): <input id="media" /><br />
-    📦 Stock: <input id="stock" type="number" required /><br />
-    💰 GST: <input id="gst" type="number" step="0.01" /><br />
-    💵 PST: <input id="pst" type="number" step="0.01" /><br />
-    🚚 Shipping: <input id="shipping" type="number" step="0.01" /><br />
-    🏷 Tags (comma-separated): <input id="tags" /><br />
-
-    <button type="submit">Save Changes</button>
-    <button type="reset">Clear Form</button>
+    <input type="hidden" id="product-id">
+    🏷 Name: <input type="text" id="name"><br>
+    📁 Category: <input type="text" id="category" list="category-list">
+    <datalist id="category-list"></datalist><br>
+    💲 Price: <input type="number" id="price" step="0.01"><br>
+    📋 Description: <input type="text" id="description"><br>
+    🖼 Media (comma-separated): <input type="text" id="media"><br>
+    📦 Stock: <input type="number" id="stock"><br>
+    💰 GST: <input type="number" id="gst" step="0.01"><br>
+    🏛 PST: <input type="number" id="pst" step="0.01"><br>
+    🚚 Shipping: <input type="number" id="shipping" step="0.01"><br>
+    🏷 Tags (comma-separated): <input type="text" id="tags"><br>
+    <button type="submit">💾 Save Changes</button>
+    <button type="reset">🧹 Clear Form</button>
   </form>
 
-  <hr />
+  <hr>
 
-  <!-- Restore Deleted Products -->
+  <!-- Recently Deleted List -->
   <h2>🗃 Recently Deleted (within 30 days)</h2>
   <div id="restore-list"></div>
+
 
   <script src="app.js"></script>
 </body>
