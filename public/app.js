@@ -1,169 +1,140 @@
-let allProducts = [];
+// app.js for admin product editor
 
-function updateCartCount() {
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const count = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartCountElement = document.getElementById("cart-count");
-  if (cartCountElement) {
-    cartCountElement.textContent = count;
-  }
+let products = [];
+
+function assignNextId() {
+  const ids = products.map(p => p.id);
+  return ids.length ? Math.max(...ids) + 1 : 1;
 }
 
-function showTemporaryAlert(message, duration = 2000) {
-  const alertBox = document.getElementById("custom-alert");
-  if (!alertBox) return;
-  alertBox.textContent = message;
-  alertBox.style.display = "block";
-  setTimeout(() => {
-    alertBox.style.display = "none";
-  }, duration);
-}
+function renderTable(filtered = products) {
+  const sortBy = document.getElementById('sort-order')?.value;
+  const tbody = document.querySelector('#product-table tbody');
+  tbody.innerHTML = '';
 
-function addToCart(product) {
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  let found = cart.find((item) => item.id === product.id);
+  let sorted = [...filtered];
+  if (sortBy === 'id') sorted.sort((a, b) => a.id - b.id);
+  else if (sortBy === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
+  else if (sortBy === 'category') sorted.sort((a, b) => a.category.localeCompare(b.category));
 
-  if (found) {
-    found.quantity += 1;
-  } else {
-    product.quantity = 1;
-    const full = allProducts.find((p) => p.id === product.id);
-    if (full) {
-      product.gst = full.gst || 0;
-      product.pst = full.pst || 0;
-      product.shipping = full.shipping || 0;
-      product.image = full.images?.[0] || "";
-    }
-    cart.push(product);
-  }
-
-  localStorage.setItem("cart", JSON.stringify(cart));
-  showTemporaryAlert(`✅ Added ${product.name} to cart`);
-  updateCartCount();
-}
-
-function fetchUserInfo() {
-  fetch("/api/user")
-    .then((res) => res.json())
-    .then((data) => {
-      const userInfo = document.getElementById("user-info");
-      const logoutLink = document.getElementById("logout-link");
-      const accountLink = document.getElementById("account-link");
-      if (data.username && userInfo && logoutLink) {
-        userInfo.textContent = `🕤 Logged in as: ${data.username}`;
-        logoutLink.style.display = "inline";
-        if (accountLink) accountLink.style.display = "inline";
-      }
-    });
-}
-
-function logout() {
-  fetch("/logout", { method: "POST" })
-    .then(() => {
-      localStorage.removeItem("cart");
-      window.location.href = "/login.html";
-    });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const logoutLink = document.getElementById("logout-link");
-  if (logoutLink) {
-    logoutLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      logout();
-    });
-  }
-
-  fetch("/api/products")
-    .then((response) => response.json())
-    .then((products) => {
-      allProducts = products;
-      updateCartCount();
-      fetchUserInfo();
-
-      const searchInput = document.getElementById("search-input");
-      const categoryFilter = document.getElementById("category-filter");
-
-      // Populate categories
-      if (categoryFilter) {
-        const uniqueCategories = [...new Set(products.map(p => p.category))];
-        uniqueCategories.forEach(cat => {
-          const option = document.createElement("option");
-          option.value = cat;
-          option.textContent = cat;
-          categoryFilter.appendChild(option);
-        });
-      }
-
-      // Filtering logic
-      const applyFilters = () => {
-        const keyword = searchInput?.value.toLowerCase() || "";
-        const selectedCategory = categoryFilter?.value || "";
-
-        const filtered = allProducts.filter(p =>
-          (p.name.toLowerCase().includes(keyword) ||
-           (p.category && p.category.toLowerCase().includes(keyword))) &&
-          (selectedCategory === "" || p.category === selectedCategory)
-        );
-
-        renderProducts(filtered);
-      };
-
-      if (searchInput) {
-        searchInput.addEventListener("input", applyFilters);
-      }
-
-      if (categoryFilter) {
-        categoryFilter.addEventListener("change", applyFilters);
-      }
-
-      renderProducts(products); // initial render
-    });
-});
-
-function renderProducts(products) {
-  const list = document.getElementById("product-list");
-  list.innerHTML = '';
-
-  products.forEach((product) => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-
-    const title = document.createElement("h2");
-    title.textContent = product.name;
-    card.appendChild(title);
-
-    const img = document.createElement("img");
-    img.src = product.images?.[0] || "";
-    img.alt = product.name;
-    img.className = "product-image";
-    img.style.cursor = "pointer";
-    img.onclick = () => {
-      window.location.href = `product.html?id=${product.id}`;
-    };
-    card.appendChild(img);
-
-    const price = document.createElement("p");
-    price.textContent = `$${product.price.toFixed(2)}`;
-    card.appendChild(price);
-
-    const description = document.createElement("p");
-    description.textContent = product.description;
-    card.appendChild(description);
-
-    const button = document.createElement("button");
-    button.textContent = "Add to Cart";
-    button.className = "add-to-cart-button";
-    button.onclick = () => {
-      addToCart({
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.images?.[0] || "",
-      });
-    };
-    card.appendChild(button);
-
-    list.appendChild(card);
+  sorted.forEach(p => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${p.id}</td>
+      <td>${p.name}</td>
+      <td>${p.category}</td>
+      <td>$${p.price.toFixed(2)}</td>
+      <td>${p.stock}</td>
+      <td class="actions">
+        <button onclick='editProduct(${p.id})'>Edit</button>
+        <button onclick='deleteProduct(${p.id})'>Delete</button>
+      </td>
+    `;
+    tbody.appendChild(row);
   });
 }
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('product-id').value = p.id;
+  document.getElementById('name').value = p.name;
+  document.getElementById('category').value = p.category;
+  document.getElementById('price').value = p.price;
+  document.getElementById('description').value = p.description;
+  document.getElementById('media').value = (p.media || []).join(',');
+  document.getElementById('stock').value = p.stock;
+  document.getElementById('gst').value = p.gst;
+  document.getElementById('pst').value = p.pst;
+  document.getElementById('shipping').value = p.shipping;
+  document.getElementById('tags').value = (p.tags || []).join(',');
+}
+
+function deleteProduct(id) {
+  if (confirm("Are you sure to delete this product?")) {
+    fetch(`/api/products/${id}`, {
+      method: 'DELETE'
+    })
+    .then(() => {
+      products = products.filter(p => p.id !== id);
+      renderTable();
+    });
+  }
+}
+
+function saveChanges(product) {
+  const method = product.id && products.find(p => p.id === product.id) ? 'PUT' : 'POST';
+  const url = method === 'POST' ? '/api/products' : `/api/products/${product.id}`;
+  fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product)
+  })
+  .then(res => res.json())
+  .then(saved => {
+    const index = products.findIndex(p => p.id === saved.id);
+    if (index > -1) {
+      products[index] = saved;
+    } else {
+      products.push(saved);
+    }
+    renderTable();
+    document.getElementById('product-form').reset();
+  });
+}
+
+document.getElementById('product-form').addEventListener('submit', e => {
+  e.preventDefault();
+  let id = document.getElementById('product-id').value;
+  const product = {
+    id: id ? Number(id) : assignNextId(),
+    name: document.getElementById('name').value,
+    category: document.getElementById('category').value,
+    price: parseFloat(document.getElementById('price').value),
+    description: document.getElementById('description').value,
+    media: document.getElementById('media').value.split(',').map(x => x.trim()),
+    stock: parseInt(document.getElementById('stock').value),
+    gst: parseFloat(document.getElementById('gst').value),
+    pst: parseFloat(document.getElementById('pst').value),
+    shipping: parseFloat(document.getElementById('shipping').value),
+    tags: document.getElementById('tags').value.split(',').map(x => x.trim()),
+    active: true
+  };
+
+  saveChanges(product);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.getElementById('search-box').addEventListener('input', e => {
+    const keyword = e.target.value.toLowerCase();
+    const filtered = products.filter(p =>
+      p.name.toLowerCase().includes(keyword) ||
+      p.id.toString().includes(keyword)
+    );
+    renderTable(filtered);
+  });
+
+  document.getElementById('category-sort').addEventListener('change', e => {
+    const selected = e.target.value;
+    const filtered = selected ? products.filter(p => p.category === selected) : products;
+    renderTable(filtered);
+  });
+
+  document.getElementById('sort-order').addEventListener('change', () => renderTable());
+
+  fetch('/api/products')
+    .then(res => res.json())
+    .then(data => {
+      products = data;
+      renderTable();
+
+      const categorySelect = document.getElementById('category-sort');
+      const uniqueCategories = [...new Set(products.map(p => p.category))];
+      uniqueCategories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        categorySelect.appendChild(opt);
+      });
+    });
+});

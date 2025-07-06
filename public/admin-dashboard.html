@@ -30,12 +30,26 @@
     .actions button {
       margin-right: 5px;
     }
+    #search-box,
+    #category-sort,
+    #sort-order {
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>Admin - Manage Products</h1>
 
-  <button onclick="logout()">Logout</button>
+  <input type="text" id="search-box" placeholder="Search by name or ID..." />
+  <select id="sort-order">
+    <option value="">Sort by default</option>
+    <option value="id">Sort by ID</option>
+    <option value="name">Sort by Name (A-Z)</option>
+    <option value="category">Sort by Category (A-Z)</option>
+  </select>
+  <select id="category-sort">
+    <option value="">Filter by category</option>
+  </select>
 
   <form id="product-form">
     <input type="hidden" id="product-id">
@@ -67,16 +81,24 @@
   </table>
 
   <script>
-    if (localStorage.getItem("isAdmin") !== "true") {
-      window.location.href = "admin.html";
-    }
-    
     let products = [];
 
-    function renderTable() {
+    function assignNextId() {
+      const ids = products.map(p => p.id);
+      return ids.length ? Math.max(...ids) + 1 : 1;
+    }
+
+    function renderTable(filtered = products) {
+      const sortBy = document.getElementById('sort-order')?.value;
       const tbody = document.querySelector('#product-table tbody');
       tbody.innerHTML = '';
-      products.forEach(p => {
+
+      let sorted = [...filtered];
+      if (sortBy === 'id') sorted.sort((a, b) => a.id - b.id);
+      else if (sortBy === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
+      else if (sortBy === 'category') sorted.sort((a, b) => a.category.localeCompare(b.category));
+
+      sorted.forEach(p => {
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${p.id}</td>
@@ -111,22 +133,42 @@
 
     function deleteProduct(id) {
       if (confirm("Are you sure to delete this product?")) {
-        products = products.filter(p => p.id !== id);
-        renderTable();
-        saveChanges();
+        fetch(`/api/products/${id}`, {
+          method: 'DELETE'
+        })
+        .then(() => {
+          products = products.filter(p => p.id !== id);
+          renderTable();
+        });
       }
     }
 
-    function saveChanges() {
-      // Save to localStorage or API
-      localStorage.setItem('adminProducts', JSON.stringify(products));
+    function saveChanges(product) {
+      const method = product.id && products.find(p => p.id === product.id) ? 'PUT' : 'POST';
+      const url = method === 'POST' ? '/api/products' : `/api/products/${product.id}`;
+      fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product)
+      })
+      .then(res => res.json())
+      .then(saved => {
+        const index = products.findIndex(p => p.id === saved.id);
+        if (index > -1) {
+          products[index] = saved;
+        } else {
+          products.push(saved);
+        }
+        renderTable();
+        document.getElementById('product-form').reset();
+      });
     }
 
     document.getElementById('product-form').addEventListener('submit', e => {
       e.preventDefault();
-      const id = document.getElementById('product-id').value;
-      const newProduct = {
-        id: id ? Number(id) : Date.now(),
+      let id = document.getElementById('product-id').value;
+      const product = {
+        id: id ? Number(id) : assignNextId(),
         name: document.getElementById('name').value,
         category: document.getElementById('category').value,
         price: parseFloat(document.getElementById('price').value),
@@ -140,27 +182,43 @@
         active: true
       };
 
-      const index = products.findIndex(p => p.id === newProduct.id);
-      if (index > -1) {
-        products[index] = newProduct;
-      } else {
-        products.push(newProduct);
-      }
-
-      renderTable();
-      saveChanges();
-      document.getElementById('product-form').reset();
+      saveChanges(product);
     });
 
-    // Load initial data
-    products = JSON.parse(localStorage.getItem('adminProducts') || '[]');
-    renderTable();
-    
-    function logout() {
-      localStorage.removeItem("isAdmin");
-      window.location.href = "admin.html";
-    }
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById('search-box').addEventListener('input', e => {
+        const keyword = e.target.value.toLowerCase();
+        const filtered = products.filter(p =>
+          p.name.toLowerCase().includes(keyword) ||
+          p.id.toString().includes(keyword)
+        );
+        renderTable(filtered);
+      });
 
+      document.getElementById('category-sort').addEventListener('change', e => {
+        const selected = e.target.value;
+        const filtered = selected ? products.filter(p => p.category === selected) : products;
+        renderTable(filtered);
+      });
+
+      document.getElementById('sort-order').addEventListener('change', () => renderTable());
+
+      fetch('/api/products')
+        .then(res => res.json())
+        .then(data => {
+          products = data;
+          renderTable();
+
+          const categorySelect = document.getElementById('category-sort');
+          const uniqueCategories = [...new Set(products.map(p => p.category))];
+          uniqueCategories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            categorySelect.appendChild(opt);
+          });
+        });
+    });
   </script>
 </body>
 </html>
