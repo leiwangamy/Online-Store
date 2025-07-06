@@ -139,6 +139,42 @@ function updateCategoryDropdown() {
   });
 }
 
+function addNewCategory() {
+  const input = document.getElementById('new-category-input');
+  const categoryName = input.value.trim();
+  
+  if (!categoryName) {
+    alert('Please enter a category name');
+    return;
+  }
+
+  const existingCategories = [...new Set(products.map(p => p.category))];
+  if (existingCategories.includes(categoryName)) {
+    alert('Category already exists');
+    return;
+  }
+
+  // Set the category in the product form
+  document.getElementById('category').value = categoryName;
+  input.value = '';
+  
+  // Update the autocomplete
+  updateCategoryAutocomplete();
+  updateCategoryTags();
+  
+  alert(`Category "${categoryName}" added! You can now create products with this category.`);
+}
+
+function updateCategoryTags() {
+  const tagsContainer = document.getElementById('category-tags');
+  if (!tagsContainer) return;
+  
+  const categories = [...new Set(products.filter(p => p.active !== false).map(p => p.category))];
+  tagsContainer.innerHTML = categories.map(cat => 
+    `<span style="background:#e3f2fd; padding:4px 8px; margin:2px; border-radius:4px; display:inline-block;">${cat}</span>`
+  ).join('');
+}
+
 document.getElementById('product-form').addEventListener('submit', e => {
   e.preventDefault();
   let id = document.getElementById('product-id').value;
@@ -185,5 +221,6 @@ document.addEventListener("DOMContentLoaded", function () {
       renderTable();
       updateCategoryAutocomplete();
       updateCategoryDropdown();
+      updateCategoryTags();
     });
 });

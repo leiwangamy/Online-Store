@@ -135,6 +135,34 @@ button {
   background-color: white;
 }
 
+.category-management {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.category-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.category-controls input {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  flex: 1;
+  max-width: 300px;
+}
+
+#category-tags {
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
 @media (max-width: 600px) {
   .filters-container {
     flex-direction: column;
