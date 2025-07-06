@@ -2,6 +2,94 @@
 
 let products = [];
 
+function showSuccessNotification(message) {
+  // Remove any existing notification
+  const existing = document.getElementById('success-notification');
+  if (existing) {
+    existing.remove();
+  }
+
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.id = 'success-notification';
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #4caf50, #45a049);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 1000;
+    max-width: 350px;
+    border-left: 4px solid #2e7d32;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease-out;
+  `;
+  
+  notification.innerHTML = `
+    <span style="font-size: 18px;">✅</span>
+    <span>${message}</span>
+  `;
+
+  // Add CSS animation keyframes if not already added
+  if (!document.getElementById('notification-styles')) {
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  document.body.appendChild(notification);
+
+  // Auto-remove after 4 seconds with fade out
+  setTimeout(() => {
+    notification.style.animation = 'slideOut 0.3s ease-in';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 300);
+  }, 4000);
+
+  // Allow manual close on click
+  notification.addEventListener('click', () => {
+    notification.style.animation = 'slideOut 0.3s ease-in';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 300);
+  });
+}
+
 function assignNextId() {
   const ids = products.map(p => p.id);
   return ids.length ? Math.max(...ids) + 1 : 1;
@@ -174,8 +262,8 @@ function addNewCategory() {
   updateCategoryDropdown();
   updateCategoryTags();
   
-  // Only show alert when manually adding a category (not during edits)
-  alert(`Category "${categoryName}" added! You can now create products with this category.`);
+  // Show styled success notification
+  showSuccessNotification(`Category "${categoryName}" added! You can now create products with this category.`);
 }
 
 function updateCategoryTags() {
