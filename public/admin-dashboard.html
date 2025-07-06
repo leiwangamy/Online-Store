@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Product Editor</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    form {
+      margin-bottom: 30px;
+    }
+    input, textarea, select {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    .actions button {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Admin - Manage Products</h1>
+
+  <button onclick="logout()">Logout</button>
+
+  <form id="product-form">
+    <input type="hidden" id="product-id">
+    <input type="text" id="name" placeholder="Product Name" required />
+    <input type="text" id="category" placeholder="Category" />
+    <input type="number" id="price" placeholder="Price" step="0.01" required />
+    <textarea id="description" placeholder="Description"></textarea>
+    <input type="text" id="media" placeholder="Comma-separated image/video URLs" />
+    <input type="number" id="stock" placeholder="Stock Quantity" />
+    <input type="number" id="gst" placeholder="GST" step="0.01" />
+    <input type="number" id="pst" placeholder="PST" step="0.01" />
+    <input type="number" id="shipping" placeholder="Shipping Cost" step="0.01" />
+    <input type="text" id="tags" placeholder="Comma-separated tags" />
+    <button type="submit">Save Product</button>
+  </form>
+
+  <table id="product-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    if (localStorage.getItem("isAdmin") !== "true") {
+      window.location.href = "admin.html";
+    }
+    
+    let products = [];
+
+    function renderTable() {
+      const tbody = document.querySelector('#product-table tbody');
+      tbody.innerHTML = '';
+      products.forEach(p => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${p.id}</td>
+          <td>${p.name}</td>
+          <td>${p.category}</td>
+          <td>$${p.price.toFixed(2)}</td>
+          <td>${p.stock}</td>
+          <td class="actions">
+            <button onclick='editProduct(${p.id})'>Edit</button>
+            <button onclick='deleteProduct(${p.id})'>Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function editProduct(id) {
+      const p = products.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('product-id').value = p.id;
+      document.getElementById('name').value = p.name;
+      document.getElementById('category').value = p.category;
+      document.getElementById('price').value = p.price;
+      document.getElementById('description').value = p.description;
+      document.getElementById('media').value = (p.media || []).join(',');
+      document.getElementById('stock').value = p.stock;
+      document.getElementById('gst').value = p.gst;
+      document.getElementById('pst').value = p.pst;
+      document.getElementById('shipping').value = p.shipping;
+      document.getElementById('tags').value = (p.tags || []).join(',');
+    }
+
+    function deleteProduct(id) {
+      if (confirm("Are you sure to delete this product?")) {
+        products = products.filter(p => p.id !== id);
+        renderTable();
+        saveChanges();
+      }
+    }
+
+    function saveChanges() {
+      // Save to localStorage or API
+      localStorage.setItem('adminProducts', JSON.stringify(products));
+    }
+
+    document.getElementById('product-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const id = document.getElementById('product-id').value;
+      const newProduct = {
+        id: id ? Number(id) : Date.now(),
+        name: document.getElementById('name').value,
+        category: document.getElementById('category').value,
+        price: parseFloat(document.getElementById('price').value),
+        description: document.getElementById('description').value,
+        media: document.getElementById('media').value.split(',').map(x => x.trim()),
+        stock: parseInt(document.getElementById('stock').value),
+        gst: parseFloat(document.getElementById('gst').value),
+        pst: parseFloat(document.getElementById('pst').value),
+        shipping: parseFloat(document.getElementById('shipping').value),
+        tags: document.getElementById('tags').value.split(',').map(x => x.trim()),
+        active: true
+      };
+
+      const index = products.findIndex(p => p.id === newProduct.id);
+      if (index > -1) {
+        products[index] = newProduct;
+      } else {
+        products.push(newProduct);
+      }
+
+      renderTable();
+      saveChanges();
+      document.getElementById('product-form').reset();
+    });
+
+    // Load initial data
+    products = JSON.parse(localStorage.getItem('adminProducts') || '[]');
+    renderTable();
+    
+    function logout() {
+      localStorage.removeItem("isAdmin");
+      window.location.href = "admin.html";
+    }
+
+  </script>
+</body>
+</html>
