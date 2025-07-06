@@ -126,8 +126,15 @@ function updateCategoryAutocomplete() {
   uniqueCategories.forEach(cat => {
     const opt = document.createElement('option');
     opt.value = cat;
+    opt.textContent = cat; // Add text content for better browser compatibility
     datalist.appendChild(opt);
   });
+  
+  // Force the input to refresh its autocomplete
+  const categoryInput = document.getElementById('category');
+  if (categoryInput) {
+    categoryInput.setAttribute('list', 'category-list');
+  }
 }
 
 function updateCategoryDropdown() {
@@ -225,6 +232,11 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.getElementById('sort-order').addEventListener('change', () => renderTable());
+
+  // Add input event listener for category field to update tags in real-time
+  document.getElementById('category').addEventListener('input', () => {
+    updateCategoryTags();
+  });
 
   fetch('/api/products')
     .then(res => res.json())
