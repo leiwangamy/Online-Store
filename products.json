@@ -1,48 +1,55 @@
-
 [
   {
     "id": 1,
     "name": "Aloe Vera Gel",
-    "price": 19.5,
+    "category": "Skin Care",
+    "price": 19.50,
     "description": "Soothing and moisturizing aloe vera gel.",
-    "category": "skincare",
-    "gst": 0.05,
-    "pst": 0.07,
-    "shipping": 2.5,
     "media": [
       "/images/aloe1.jpg",
       "/images/aloe2.png",
-      "/videos/zhuang_final.mp4"
-    ]
+      "/videos/aloe-demo.mp4"
+    ],
+    "gst": 0.05,
+    "pst": 0.07,
+    "shipping": 2.50,
+    "tags": ["soothing", "natural", "gel"],
+    "stock": 50,
+    "active": true
   },
   {
     "id": 2,
     "name": "Insect Ointment",
+    "category": "First Aid",
     "price": 15.49,
     "description": "Relief from bug bites and stings.",
-    "category": "health",
-    "gst": 0.05,
-    "pst": 0.0,
-    "shipping": 2.0,
     "media": [
       "/images/ointment1.jpg",
-      "/images/ointment2.jpg",
-      "/videos/Goose Family.MOV"
-    ]
+      "/images/ointment2.jpg"
+    ],
+    "gst": 0.05,
+    "pst": 0.00,
+    "shipping": 2.00,
+    "tags": ["relief", "ointment", "natural"],
+    "stock": 75,
+    "active": true
   },
   {
     "id": 3,
     "name": "Facial Mask",
-    "price": 19.0,
+    "category": "Beauty",
+    "price": 19.00,
     "description": "Refreshing facial mask for clear skin.",
-    "category": "skincare",
-    "gst": 0.05,
-    "pst": 0.07,
-    "shipping": 2.75,
     "media": [
       "/images/mask1.png",
       "/images/mask2.png",
       "/images/mask3.png"
-    ]
+    ],
+    "gst": 0.05,
+    "pst": 0.07,
+    "shipping": 2.75,
+    "tags": ["face", "mask", "refreshing"],
+    "stock": 20,
+    "active": true
   }
 ]

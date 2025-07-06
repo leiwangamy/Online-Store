@@ -1,4 +1,3 @@
-// app.js (refactored with login info display, logout, and account link)
 let allProducts = [];
 
 function updateCartCount() {
@@ -43,7 +42,6 @@ function addToCart(product) {
   updateCartCount();
 }
 
-// ✅ Fetch user login info and update UI
 function fetchUserInfo() {
   fetch("/api/user")
     .then((res) => res.json())
@@ -59,7 +57,6 @@ function fetchUserInfo() {
     });
 }
 
-// ✅ Logout function
 function logout() {
   fetch("/logout", { method: "POST" })
     .then(() => {
@@ -81,52 +78,92 @@ document.addEventListener("DOMContentLoaded", () => {
     .then((response) => response.json())
     .then((products) => {
       allProducts = products;
-      const list = document.getElementById("product-list");
-
-      products.forEach((product) => {
-        const card = document.createElement("div");
-        card.className = "product-card";
-
-        const title = document.createElement("h2");
-        title.textContent = product.name;
-        card.appendChild(title);
-
-        const img = document.createElement("img");
-        img.src = product.images?.[0] || "";
-        img.alt = product.name;
-        img.className = "product-image";
-        img.style.cursor = "pointer";
-        img.onclick = () => {
-          window.location.href = `product.html?id=${product.id}`;
-        };
-        card.appendChild(img);
-
-
-        const price = document.createElement("p");
-        price.textContent = `$${product.price.toFixed(2)}`;
-        card.appendChild(price);
-
-        const description = document.createElement("p");
-        description.textContent = product.description;
-        card.appendChild(description);
-
-        const button = document.createElement("button");
-        button.textContent = "Add to Cart";
-        button.className = "add-to-cart-button";
-        button.onclick = () => {
-          addToCart({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            image: product.images?.[0] || "",
-          });
-        };
-        card.appendChild(button);
-
-        list.appendChild(card);
-      });
-
       updateCartCount();
       fetchUserInfo();
+
+      const searchInput = document.getElementById("search-input");
+      const categoryFilter = document.getElementById("category-filter");
+
+      // Populate categories
+      if (categoryFilter) {
+        const uniqueCategories = [...new Set(products.map(p => p.category))];
+        uniqueCategories.forEach(cat => {
+          const option = document.createElement("option");
+          option.value = cat;
+          option.textContent = cat;
+          categoryFilter.appendChild(option);
+        });
+      }
+
+      // Filtering logic
+      const applyFilters = () => {
+        const keyword = searchInput?.value.toLowerCase() || "";
+        const selectedCategory = categoryFilter?.value || "";
+
+        const filtered = allProducts.filter(p =>
+          (p.name.toLowerCase().includes(keyword) ||
+           (p.category && p.category.toLowerCase().includes(keyword))) &&
+          (selectedCategory === "" || p.category === selectedCategory)
+        );
+
+        renderProducts(filtered);
+      };
+
+      if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+      }
+
+      if (categoryFilter) {
+        categoryFilter.addEventListener("change", applyFilters);
+      }
+
+      renderProducts(products); // initial render
     });
 });
+
+function renderProducts(products) {
+  const list = document.getElementById("product-list");
+  list.innerHTML = '';
+
+  products.forEach((product) => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+
+    const title = document.createElement("h2");
+    title.textContent = product.name;
+    card.appendChild(title);
+
+    const img = document.createElement("img");
+    img.src = product.images?.[0] || "";
+    img.alt = product.name;
+    img.className = "product-image";
+    img.style.cursor = "pointer";
+    img.onclick = () => {
+      window.location.href = `product.html?id=${product.id}`;
+    };
+    card.appendChild(img);
+
+    const price = document.createElement("p");
+    price.textContent = `$${product.price.toFixed(2)}`;
+    card.appendChild(price);
+
+    const description = document.createElement("p");
+    description.textContent = product.description;
+    card.appendChild(description);
+
+    const button = document.createElement("button");
+    button.textContent = "Add to Cart";
+    button.className = "add-to-cart-button";
+    button.onclick = () => {
+      addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images?.[0] || "",
+      });
+    };
+    card.appendChild(button);
+
+    list.appendChild(card);
+  });
+}
