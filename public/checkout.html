@@ -55,6 +55,34 @@
   <div class="container">
     <h2>Checkout</h2>
 
+    <!-- Order Summary Section -->
+    <div id="order-summary" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+      <h3>Order Summary</h3>
+      <div id="cart-items-summary"></div>
+      <div id="order-totals" style="border-top: 2px solid #dee2e6; padding-top: 15px; margin-top: 15px;">
+        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Subtotal:</span>
+          <span id="subtotal">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>GST:</span>
+          <span id="gst-total">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>PST:</span>
+          <span id="pst-total">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Shipping:</span>
+          <span id="shipping-total">$0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin: 10px 0; font-weight: bold; font-size: 18px; border-top: 1px solid #dee2e6; padding-top: 10px;">
+          <span>Total:</span>
+          <span id="grand-total">$0.00</span>
+        </div>
+      </div>
+    </div>
+
     <form id="checkout-form">
       <div class="form-group">
         <label for="name">Full Name</label>
@@ -83,6 +111,58 @@
   </div>
 
   <script>
+    function displayOrderSummary() {
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const cartItemsContainer = document.getElementById("cart-items-summary");
+      
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = "<p>Your cart is empty.</p>";
+        return;
+      }
+
+      let subtotal = 0;
+      let gstTotal = 0;
+      let pstTotal = 0;
+      let shippingTotal = 0;
+
+      // Display cart items
+      cartItemsContainer.innerHTML = cart.map(item => {
+        const itemTotal = item.price * item.quantity;
+        const gst = (item.gst || 0) * itemTotal;
+        const pst = (item.pst || 0) * itemTotal;
+        const shipping = (item.shipping || 0) * item.quantity;
+
+        subtotal += itemTotal;
+        gstTotal += gst;
+        pstTotal += pst;
+        shippingTotal += shipping;
+
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <img src="${item.image}" alt="${item.name}" width="50" style="border-radius: 4px;" />
+              <div>
+                <strong>${item.name}</strong><br>
+                <small>Qty: ${item.quantity} × $${item.price.toFixed(2)}</small>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <strong>$${itemTotal.toFixed(2)}</strong>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Update totals
+      const grandTotal = subtotal + gstTotal + pstTotal + shippingTotal;
+      
+      document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
+      document.getElementById("gst-total").textContent = `$${gstTotal.toFixed(2)}`;
+      document.getElementById("pst-total").textContent = `$${pstTotal.toFixed(2)}`;
+      document.getElementById("shipping-total").textContent = `$${shippingTotal.toFixed(2)}`;
+      document.getElementById("grand-total").textContent = `$${grandTotal.toFixed(2)}`;
+    }
+
     // Check if user is logged in on page load
     document.addEventListener("DOMContentLoaded", () => {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -96,6 +176,9 @@
       // User is logged in, auto-fill their info
       if (user.fullName) document.getElementById("name").value = user.fullName;
       if (user.address) document.getElementById("address").value = user.address;
+      
+      // Display order summary
+      displayOrderSummary();
     });
 
     // ✅ Handle order confirmation
