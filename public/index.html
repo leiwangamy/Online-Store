@@ -111,12 +111,61 @@
         video.width = width;
         video.style.borderRadius = "8px";
         video.preload = "metadata";
-        video.onerror = function() {
-          console.error("Video failed to load:", file);
+        video.muted = true; // Many browsers require muted for autoplay
+
+        // Comprehensive error handling
+        video.onerror = function(e) {
+          console.error("❌ Video failed to load:", file);
+          console.error("Error details:", {
+            error: video.error,
+            errorCode: video.error?.code,
+            errorMessage: video.error?.message,
+            networkState: video.networkState,
+            readyState: video.readyState
+          });
+
+          // Test if the video URL is accessible
+          fetch(file, { method: 'HEAD' })
+            .then(response => {
+              console.log("📁 File accessibility test:", {
+                status: response.status,
+                contentType: response.headers.get('content-type'),
+                contentLength: response.headers.get('content-length')
+              });
+            })
+            .catch(fetchError => {
+              console.error("🚫 File not accessible:", fetchError);
+            });
         };
+
+        video.onloadstart = function() {
+          console.log("🚀 Video load started:", file);
+        };
+
+        video.onloadedmetadata = function() {
+          console.log("📊 Video metadata loaded:", {
+            duration: video.duration,
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight
+          });
+        };
+
         video.onloadeddata = function() {
-          console.log("Video loaded successfully:", file);
+          console.log("✅ Video data loaded successfully:", file);
         };
+
+        video.oncanplay = function() {
+          console.log("▶️ Video can start playing:", file);
+        };
+
+        video.onstalled = function() {
+          console.warn("⏸️ Video loading stalled:", file);
+        };
+
+        video.onsuspend = function() {
+          console.warn("⏸️ Video loading suspended:", file);
+        };
+
         return video;
       } else {
         const img = document.createElement("img");
