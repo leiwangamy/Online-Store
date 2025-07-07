@@ -22,22 +22,7 @@
       display: inline-block;
       cursor: pointer;
     }
-    .slide-button {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(0,0,0,0.5);
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
-    .slide-button.left {
-      left: 0;
-    }
-    .slide-button.right {
-      right: 0;
-    }
+    
     .modal {
       display: none;
       position: fixed;
@@ -290,37 +275,12 @@
         div.className = 'product-card';
 
         const mediaFiles = product.media || product.images || [];
-        let mediaIndex = 0;
-        let mediaElement = createMediaElement(mediaFiles[mediaIndex]);
+        // Just show the first image/video without carousel
+        let mediaElement = createMediaElement(mediaFiles[0]);
 
         const mediaWrapper = document.createElement('div');
         mediaWrapper.className = 'product-image-wrapper';
         mediaWrapper.appendChild(mediaElement);
-
-        const leftBtn = document.createElement('button');
-        leftBtn.textContent = '<';
-        leftBtn.className = 'slide-button left';
-        leftBtn.onclick = (e) => {
-          e.stopPropagation();
-          mediaIndex = (mediaIndex - 1 + mediaFiles.length) % mediaFiles.length;
-          const newMedia = createMediaElement(mediaFiles[mediaIndex]);
-          mediaWrapper.replaceChild(newMedia, mediaElement);
-          mediaElement = newMedia;
-        };
-
-        const rightBtn = document.createElement('button');
-        rightBtn.textContent = '>';
-        rightBtn.className = 'slide-button right';
-        rightBtn.onclick = (e) => {
-          e.stopPropagation();
-          mediaIndex = (mediaIndex + 1) % mediaFiles.length;
-          const newMedia = createMediaElement(mediaFiles[mediaIndex]);
-          mediaWrapper.replaceChild(newMedia, mediaElement);
-          mediaElement = newMedia;
-        };
-
-        mediaWrapper.appendChild(leftBtn);
-        mediaWrapper.appendChild(rightBtn);
         div.appendChild(mediaWrapper);
 
         mediaWrapper.onclick = () => {
