@@ -83,6 +83,19 @@
   </div>
 
   <script>
+
+    fetch('/api/user')
+    .then(res => res.json())
+    .then(user => {
+      if (!user.username) {
+        // Not logged in → redirect to login page with return URL
+        window.location.href = `/login.html?redirect=checkout.html`;
+      } else {
+        // Continue with showing the checkout page
+        loadCheckoutPage(user);
+      }
+    });
+
     // ✅ Auto-fill user info on page load
     document.addEventListener("DOMContentLoaded", () => {
       fetch("/api/user")
