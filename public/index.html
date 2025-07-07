@@ -45,18 +45,83 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.8);
       z-index: 999;
       justify-content: center;
       align-items: center;
+      backdrop-filter: blur(5px);
     }
     .modal-content {
       background: #fff;
-      padding: 20px;
-      border-radius: 10px;
+      padding: 30px;
+      border-radius: 15px;
       text-align: center;
-      max-width: 600px;
+      max-width: 700px;
       width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .modal-media-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .modal-nav-button {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      padding: 15px 20px;
+      cursor: pointer;
+      border-radius: 50%;
+      font-size: 18px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+    .modal-nav-button:hover {
+      background: rgba(0,0,0,0.9);
+      transform: translateY(-50%) scale(1.1);
+    }
+    .modal-nav-button.left {
+      left: 10px;
+    }
+    .modal-nav-button.right {
+      right: 10px;
+    }
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.3s ease;
+    }
+    .close-modal:hover {
+      color: #333;
+    }
+    .media-indicator {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 15px;
+    }
+    .media-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ddd;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .media-dot.active {
+      background: #007bff;
     }
     #search-bar {
       text-align: center;
@@ -309,66 +374,166 @@
 
       let mediaIndex = 0;
       const mediaFiles = product.media || product.images || [];
-      let mediaElement = createMediaElement(mediaFiles[mediaIndex], 400);
+      
+      // Close button
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'close-modal';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.onclick = () => modal.style.display = 'none';
+      content.appendChild(closeBtn);
 
-      const mediaWrapper = document.createElement('div');
-      mediaWrapper.className = 'product-image-wrapper';
-      mediaWrapper.appendChild(mediaElement);
-
-      const prev = document.createElement('button');
-      prev.textContent = 'Prev';
-      prev.onclick = () => {
-        mediaIndex = (mediaIndex - 1 + mediaFiles.length) % mediaFiles.length;
-        const newMedia = createMediaElement(mediaFiles[mediaIndex], 400);
-        mediaWrapper.replaceChild(newMedia, mediaElement);
-        mediaElement = newMedia;
-      };
-
-      const next = document.createElement('button');
-      next.textContent = 'Next';
-      next.onclick = () => {
-        mediaIndex = (mediaIndex + 1) % mediaFiles.length;
-        const newMedia = createMediaElement(mediaFiles[mediaIndex], 400);
-        mediaWrapper.replaceChild(newMedia, mediaElement);
-        mediaElement = newMedia;
-      };
-
+      // Product name
       const name = document.createElement('h2');
       name.textContent = product.name;
+      name.style.marginBottom = '20px';
+      content.appendChild(name);
 
+      // Media wrapper with navigation
+      const mediaWrapper = document.createElement('div');
+      mediaWrapper.className = 'modal-media-wrapper';
+      
+      let mediaElement = createMediaElement(mediaFiles[mediaIndex], 500);
+      mediaWrapper.appendChild(mediaElement);
+
+      // Navigation buttons (only show if multiple media files)
+      if (mediaFiles.length > 1) {
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'modal-nav-button left';
+        prevBtn.innerHTML = '&#8249;';
+        prevBtn.onclick = () => {
+          mediaIndex = (mediaIndex - 1 + mediaFiles.length) % mediaFiles.length;
+          const newMedia = createMediaElement(mediaFiles[mediaIndex], 500);
+          mediaWrapper.replaceChild(newMedia, mediaElement);
+          mediaElement = newMedia;
+          updateIndicators();
+        };
+
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'modal-nav-button right';
+        nextBtn.innerHTML = '&#8250;';
+        nextBtn.onclick = () => {
+          mediaIndex = (mediaIndex + 1) % mediaFiles.length;
+          const newMedia = createMediaElement(mediaFiles[mediaIndex], 500);
+          mediaWrapper.replaceChild(newMedia, mediaElement);
+          mediaElement = newMedia;
+          updateIndicators();
+        };
+
+        mediaWrapper.appendChild(prevBtn);
+        mediaWrapper.appendChild(nextBtn);
+      }
+
+      content.appendChild(mediaWrapper);
+
+      // Media indicators
+      if (mediaFiles.length > 1) {
+        const indicators = document.createElement('div');
+        indicators.className = 'media-indicator';
+        
+        function updateIndicators() {
+          indicators.innerHTML = '';
+          mediaFiles.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = `media-dot ${index === mediaIndex ? 'active' : ''}`;
+            dot.onclick = () => {
+              mediaIndex = index;
+              const newMedia = createMediaElement(mediaFiles[mediaIndex], 500);
+              mediaWrapper.replaceChild(newMedia, mediaElement);
+              mediaElement = newMedia;
+              updateIndicators();
+            };
+            indicators.appendChild(dot);
+          });
+        }
+        
+        updateIndicators();
+        content.appendChild(indicators);
+      }
+
+      // Product details
       const desc = document.createElement('p');
       desc.textContent = product.description;
+      desc.style.fontSize = '16px';
+      desc.style.margin = '20px 0';
+      content.appendChild(desc);
 
       const price = document.createElement('p');
-      price.innerHTML = `<strong>$${product.price.toFixed(2)}</strong>`;
+      price.innerHTML = `<strong style="font-size: 24px; color: #28a745;">$${product.price.toFixed(2)}</strong>`;
+      price.style.margin = '20px 0';
+      content.appendChild(price);
 
-      const add = document.createElement('button');
-      add.textContent = "Add to Cart";
-      add.style.margin = "10px";
-      add.onclick = () => {
+      // Action buttons
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.display = 'flex';
+      buttonContainer.style.gap = '15px';
+      buttonContainer.style.justifyContent = 'center';
+      buttonContainer.style.marginTop = '25px';
+
+      const addBtn = document.createElement('button');
+      addBtn.textContent = "🛒 Add to Cart";
+      addBtn.style.padding = "12px 25px";
+      addBtn.style.backgroundColor = "#28a745";
+      addBtn.style.color = "white";
+      addBtn.style.border = "none";
+      addBtn.style.borderRadius = "8px";
+      addBtn.style.fontSize = "16px";
+      addBtn.style.cursor = "pointer";
+      addBtn.style.fontWeight = "bold";
+      addBtn.onclick = () => {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         const existing = cart.find(p => p.id === product.id);
         if (existing) existing.quantity += 1;
         else cart.push({ ...product, quantity: 1 });
         localStorage.setItem('cart', JSON.stringify(cart));
         updateCartCount();
+        
+        // Show success feedback
+        document.getElementById('custom-alert').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('custom-alert').style.display = 'none';
+        }, 2000);
+        
         modal.style.display = 'none';
       };
 
-      const close = document.createElement('button');
-      close.textContent = "← Continue Shopping";
-      close.style.margin = "10px";
-      close.onclick = () => modal.style.display = 'none';
+      const continueBtn = document.createElement('button');
+      continueBtn.textContent = "← Continue Shopping";
+      continueBtn.style.padding = "12px 25px";
+      continueBtn.style.backgroundColor = "#6c757d";
+      continueBtn.style.color = "white";
+      continueBtn.style.border = "none";
+      continueBtn.style.borderRadius = "8px";
+      continueBtn.style.fontSize = "16px";
+      continueBtn.style.cursor = "pointer";
+      continueBtn.onclick = () => modal.style.display = 'none';
 
-      content.appendChild(mediaWrapper);
-      content.appendChild(prev);
-      content.appendChild(next);
-      content.appendChild(name);
-      content.appendChild(desc);
-      content.appendChild(price);
-      content.appendChild(add);
-      content.appendChild(close);
+      buttonContainer.appendChild(addBtn);
+      buttonContainer.appendChild(continueBtn);
+      content.appendChild(buttonContainer);
+
       modal.style.display = 'flex';
+      
+      // Add keyboard navigation
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          modal.style.display = 'none';
+          document.removeEventListener('keydown', handleKeyDown);
+        } else if (e.key === 'ArrowLeft' && mediaFiles.length > 1) {
+          mediaIndex = (mediaIndex - 1 + mediaFiles.length) % mediaFiles.length;
+          const newMedia = createMediaElement(mediaFiles[mediaIndex], 500);
+          mediaWrapper.replaceChild(newMedia, mediaElement);
+          mediaElement = newMedia;
+          if (typeof updateIndicators === 'function') updateIndicators();
+        } else if (e.key === 'ArrowRight' && mediaFiles.length > 1) {
+          mediaIndex = (mediaIndex + 1) % mediaFiles.length;
+          const newMedia = createMediaElement(mediaFiles[mediaIndex], 500);
+          mediaWrapper.replaceChild(newMedia, mediaElement);
+          mediaElement = newMedia;
+          if (typeof updateIndicators === 'function') updateIndicators();
+        }
+      };
+      
+      document.addEventListener('keydown', handleKeyDown);
     }
 
     window.onclick = function(event) {
