@@ -12,6 +12,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const USERS_FILE = path.join(__dirname, 'users.json');
+const ORDERS_FILE = path.join(__dirname, 'orders.json');
 
 // Helper to load users
 function loadUsers() {
@@ -23,6 +24,18 @@ function loadUsers() {
 // Helper to save users
 function saveUsers(users) {
   fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+// Helper to load orders
+function loadOrders() {
+  if (!fs.existsSync(ORDERS_FILE)) return [];
+  const raw = fs.readFileSync(ORDERS_FILE, 'utf8');
+  return JSON.parse(raw);
+}
+
+// Helper to save orders
+function saveOrders(orders) {
+  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2));
 }
 
 // Login endpoint
@@ -146,6 +159,56 @@ app.post('/api/products/:id/restore', (req, res) => {
     res.json(product);
   } catch {
     res.status(500).send("Failed to restore product");
+  }
+});
+
+// Submit new order
+app.post('/api/orders', (req, res) => {
+  try {
+    const orders = loadOrders();
+    const orderData = req.body;
+    
+    // Generate order ID
+    const orderIds = orders.map(o => o.id);
+    const nextOrderId = orderIds.length ? Math.max(...orderIds) + 1 : 1;
+    
+    const newOrder = {
+      id: nextOrderId,
+      ...orderData,
+      orderDate: new Date().toISOString(),
+      status: 'pending'
+    };
+    
+    orders.push(newOrder);
+    saveOrders(orders);
+    res.json(newOrder);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to save order' });
+  }
+});
+
+// Get all orders (for admin)
+app.get('/api/orders', (req, res) => {
+  try {
+    const orders = loadOrders();
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to load orders' });
+  }
+});
+
+// Update order status
+app.put('/api/orders/:id', (req, res) => {
+  try {
+    const orders = loadOrders();
+    const orderIndex = orders.findIndex(o => o.id == req.params.id);
+    if (orderIndex === -1) return res.status(404).json({ message: 'Order not found' });
+    
+    orders[orderIndex] = { ...orders[orderIndex], ...req.body };
+    saveOrders(orders);
+    res.json(orders[orderIndex]);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update order' });
   }
 });
 

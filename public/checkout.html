@@ -182,7 +182,7 @@
     });
 
     // ✅ Handle order confirmation
-    document.getElementById("checkout-form").onsubmit = function (e) {
+    document.getElementById("checkout-form").onsubmit = async function (e) {
       e.preventDefault();
       const name = document.getElementById("name").value;
       const address = document.getElementById("address").value;
@@ -190,21 +190,81 @@
 
       if (!name || !address || !payment) return;
 
-      // ✅ Just clear cart (not session)
-      localStorage.removeItem("cart");
+      const cart = JSON.parse(localStorage.getItem("cart")) || [];
+      const user = JSON.parse(localStorage.getItem("user"));
+      
+      // Calculate totals
+      let subtotal = 0;
+      let gstTotal = 0;
+      let pstTotal = 0;
+      let shippingTotal = 0;
 
-      // ✅ Show confirmation and link back to home
-      const confirmation = document.getElementById("confirmation");
-      confirmation.innerHTML = `
-        <h3>✅ Order Confirmed!</h3>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Address:</strong> ${address}</p>
-        <p><strong>Payment:</strong> ${payment}</p>
-        <p>Thank you for your purchase!</p>
-        <a class="continue-link" href="index.html">← Continue Shopping</a>
-      `;
-      confirmation.style.display = "block";
-      document.getElementById("checkout-form").style.display = "none";
+      cart.forEach(item => {
+        const itemTotal = item.price * item.quantity;
+        const gst = (item.gst || 0) * itemTotal;
+        const pst = (item.pst || 0) * itemTotal;
+        const shipping = (item.shipping || 0) * item.quantity;
+
+        subtotal += itemTotal;
+        gstTotal += gst;
+        pstTotal += pst;
+        shippingTotal += shipping;
+      });
+
+      const grandTotal = subtotal + gstTotal + pstTotal + shippingTotal;
+
+      // Prepare order data
+      const orderData = {
+        customerName: name,
+        customerUsername: user?.username || 'guest',
+        shippingAddress: address,
+        paymentMethod: payment,
+        items: cart,
+        subtotal: subtotal,
+        gst: gstTotal,
+        pst: pstTotal,
+        shipping: shippingTotal,
+        total: grandTotal
+      };
+
+      try {
+        // Submit order to server
+        const response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        if (response.ok) {
+          const order = await response.json();
+          
+          // ✅ Clear cart after successful order
+          localStorage.removeItem("cart");
+
+          // ✅ Show confirmation with order number
+          const confirmation = document.getElementById("confirmation");
+          confirmation.innerHTML = `
+            <h3>✅ Order Confirmed!</h3>
+            <p><strong>Order #:</strong> ${order.id}</p>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Address:</strong> ${address}</p>
+            <p><strong>Payment:</strong> ${payment}</p>
+            <p><strong>Total:</strong> $${grandTotal.toFixed(2)}</p>
+            <p>Thank you for your purchase!</p>
+            <a class="continue-link" href="index.html">← Continue Shopping</a>
+          `;
+          confirmation.style.display = "block";
+          document.getElementById("checkout-form").style.display = "none";
+          document.getElementById("order-summary").style.display = "none";
+        } else {
+          alert('Failed to submit order. Please try again.');
+        }
+      } catch (error) {
+        alert('Error submitting order. Please try again.');
+        console.error('Order submission error:', error);
+      }
     };
   </script>
 </body>

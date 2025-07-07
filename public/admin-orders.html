@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Order Management - Admin</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .order-card {
+      border: 1px solid #ddd;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 8px;
+      background: #f9f9f9;
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .order-status {
+      padding: 5px 15px;
+      border-radius: 20px;
+      color: white;
+      font-weight: bold;
+    }
+    .status-pending { background-color: #ffc107; }
+    .status-processing { background-color: #17a2b8; }
+    .status-shipped { background-color: #28a745; }
+    .status-delivered { background-color: #6c757d; }
+    .order-items {
+      margin: 10px 0;
+    }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .order-totals {
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    .status-update {
+      margin-top: 15px;
+    }
+    .filters {
+      background: #e9ecef;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    .filters select, .filters input {
+      margin: 5px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📦 Order Management System</h1>
+    <nav>
+      <a href="admin-dashboard.html">← Back to Admin Dashboard</a> |
+      <a href="index.html">🏠 Home</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- Filters -->
+    <div class="filters">
+      <h3>📋 Order Filters</h3>
+      <label>Status:</label>
+      <select id="status-filter">
+        <option value="">All Orders</option>
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+      </select>
+      
+      <label>Search:</label>
+      <input type="text" id="search-filter" placeholder="Search by order ID, customer name...">
+      
+      <button onclick="filterOrders()">🔍 Apply Filters</button>
+      <button onclick="loadOrders()">🔄 Refresh</button>
+    </div>
+
+    <!-- Orders List -->
+    <div id="orders-container">
+      <p>Loading orders...</p>
+    </div>
+  </div>
+
+  <script>
+    let allOrders = [];
+
+    async function loadOrders() {
+      try {
+        const response = await fetch('/api/orders');
+        if (response.ok) {
+          allOrders = await response.json();
+          // Sort by newest first
+          allOrders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+          displayOrders(allOrders);
+        } else {
+          document.getElementById('orders-container').innerHTML = '<p>Failed to load orders.</p>';
+        }
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        document.getElementById('orders-container').innerHTML = '<p>Error loading orders.</p>';
+      }
+    }
+
+    function displayOrders(orders) {
+      const container = document.getElementById('orders-container');
+      
+      if (orders.length === 0) {
+        container.innerHTML = '<p>No orders found.</p>';
+        return;
+      }
+
+      container.innerHTML = orders.map(order => `
+        <div class="order-card">
+          <div class="order-header">
+            <div>
+              <h3>Order #${order.id}</h3>
+              <p><strong>Customer:</strong> ${order.customerName} (${order.customerUsername})</p>
+              <p><strong>Date:</strong> ${new Date(order.orderDate).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <span class="order-status status-${order.status}">${order.status.toUpperCase()}</span>
+            </div>
+          </div>
+          
+          <div class="order-details">
+            <p><strong>📍 Shipping Address:</strong> ${order.shippingAddress}</p>
+            <p><strong>💳 Payment Method:</strong> ${order.paymentMethod}</p>
+            
+            <div class="order-items">
+              <h4>📦 Items to Ship:</h4>
+              ${order.items.map(item => `
+                <div class="item-row">
+                  <span><strong>${item.name}</strong> (Qty: ${item.quantity})</span>
+                  <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              `).join('')}
+            </div>
+            
+            <div class="order-totals">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Subtotal:</span>
+                <span>$${order.subtotal.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>GST:</span>
+                <span>$${order.gst.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>PST:</span>
+                <span>$${order.pst.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span>Shipping:</span>
+                <span>$${order.shipping.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-weight: bold; border-top: 2px solid #ddd; padding-top: 10px; margin-top: 10px;">
+                <span>Total:</span>
+                <span>$${order.total.toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <div class="status-update">
+              <label>Update Status:</label>
+              <select id="status-${order.id}">
+                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+              </select>
+              <button onclick="updateOrderStatus(${order.id})">📝 Update Status</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function updateOrderStatus(orderId) {
+      const newStatus = document.getElementById(`status-${orderId}`).value;
+      
+      try {
+        const response = await fetch(`/api/orders/${orderId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (response.ok) {
+          // Update local data
+          const orderIndex = allOrders.findIndex(o => o.id === orderId);
+          if (orderIndex !== -1) {
+            allOrders[orderIndex].status = newStatus;
+          }
+          
+          // Refresh display
+          filterOrders();
+          alert(`Order #${orderId} status updated to: ${newStatus}`);
+        } else {
+          alert('Failed to update order status');
+        }
+      } catch (error) {
+        console.error('Error updating order:', error);
+        alert('Error updating order status');
+      }
+    }
+
+    function filterOrders() {
+      const statusFilter = document.getElementById('status-filter').value;
+      const searchFilter = document.getElementById('search-filter').value.toLowerCase();
+
+      let filtered = allOrders;
+
+      if (statusFilter) {
+        filtered = filtered.filter(order => order.status === statusFilter);
+      }
+
+      if (searchFilter) {
+        filtered = filtered.filter(order => 
+          order.id.toString().includes(searchFilter) ||
+          order.customerName.toLowerCase().includes(searchFilter) ||
+          order.customerUsername.toLowerCase().includes(searchFilter)
+        );
+      }
+
+      displayOrders(filtered);
+    }
+
+    // Load orders when page loads
+    document.addEventListener('DOMContentLoaded', loadOrders);
+  </script>
+</body>
+</html>
