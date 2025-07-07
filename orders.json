@@ -1,2 +1,81 @@
-
-[]
+[
+  {
+    "id": 1,
+    "customerName": "my namea",
+    "customerUsername": "mya@hotmail.com",
+    "shippingAddress": "123 Street",
+    "paymentMethod": "card",
+    "items": [
+      {
+        "id": 1,
+        "name": "Aloe Vera Gel",
+        "category": "Skin Care",
+        "price": 20,
+        "description": "Soothing and moisturizing aloe vera gel.",
+        "media": [
+          "/images/aloe1.jpg",
+          "/images/aloe2.png",
+          "/videos/aloe-demo.mp4"
+        ],
+        "gst": 0.05,
+        "pst": 0.07,
+        "shipping": 2.5,
+        "tags": [
+          "soothing",
+          "natural",
+          "gel"
+        ],
+        "stock": 50,
+        "active": true,
+        "deletedAt": "2025-07-06T05:03:54.794Z",
+        "quantity": 2
+      }
+    ],
+    "subtotal": 40,
+    "gst": 2,
+    "pst": 2.8000000000000003,
+    "shipping": 5,
+    "total": 49.8,
+    "orderDate": "2025-07-07T06:18:50.751Z",
+    "status": "pending"
+  },
+  {
+    "id": 2,
+    "customerName": "Lei",
+    "customerUsername": "leiwangamy@gmail.com",
+    "shippingAddress": "123 Street",
+    "paymentMethod": "card",
+    "items": [
+      {
+        "id": 3,
+        "name": "Facial Mask",
+        "category": "Beauty",
+        "price": 19,
+        "description": "Refreshing facial mask for clear skin.",
+        "media": [
+          "/images/mask1.png",
+          "/images/mask2.png",
+          "/images/mask3.png"
+        ],
+        "gst": 0.05,
+        "pst": 0.07,
+        "shipping": 2.75,
+        "tags": [
+          "face",
+          "mask",
+          "refreshing"
+        ],
+        "stock": 20,
+        "active": true,
+        "quantity": 2
+      }
+    ],
+    "subtotal": 38,
+    "gst": 1.9000000000000001,
+    "pst": 2.66,
+    "shipping": 5.5,
+    "total": 48.06,
+    "orderDate": "2025-07-07T06:20:33.099Z",
+    "status": "pending"
+  }
+]
