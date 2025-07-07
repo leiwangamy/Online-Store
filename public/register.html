@@ -25,3 +25,108 @@
   <p><a href="/login.html">Back to Login</a></p>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 20px;
+      background-color: #f2f2f2;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+    }
+
+    label, input {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #2a8f2a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #237523;
+    }
+
+    .message {
+      color: red;
+      margin-top: 10px;
+    }
+
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>📝 Register</h2>
+  <form id="register-form">
+    <label>Username (Email):</label>
+    <input type="email" name="username" required>
+
+    <label>Password:</label>
+    <input type="password" name="password" required>
+
+    <label>Full Name:</label>
+    <input type="text" name="fullName">
+
+    <label>Address:</label>
+    <input type="text" name="address">
+
+    <button type="submit">Register</button>
+  </form>
+
+  <p><a href="/login.html">Already have an account? Login here</a></p>
+
+  <p class="message" id="message"></p>
+
+  <script>
+    document.getElementById("register-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const form = e.target;
+      const username = form.username.value.trim();
+      const password = form.password.value.trim();
+      const fullName = form.fullName.value.trim();
+      const address = form.address.value.trim();
+
+      const res = await fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password, fullName, address })
+      });
+
+      const data = await res.json();
+      const messageEl = document.getElementById("message");
+
+      if (res.ok) {
+        messageEl.textContent = "Registration successful! Redirecting to login...";
+        messageEl.className = "message success";
+        
+        setTimeout(() => {
+          window.location.href = "/login.html";
+        }, 1500);
+      } else {
+        messageEl.textContent = data.message || "Registration failed.";
+        messageEl.className = "message";
+      }
+    });
+  </script>
+</body>
+</html>

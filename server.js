@@ -11,6 +11,63 @@ const FILE_PATH = path.join(__dirname, 'products.json');
 app.use(express.json());
 app.use(express.static('public'));
 
+const USERS_FILE = path.join(__dirname, 'users.json');
+
+// Helper to load users
+function loadUsers() {
+  if (!fs.existsSync(USERS_FILE)) return [];
+  const raw = fs.readFileSync(USERS_FILE, 'utf8');
+  return JSON.parse(raw);
+}
+
+// Helper to save users
+function saveUsers(users) {
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+// Login endpoint
+app.post('/login', (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const users = loadUsers();
+    
+    const user = users.find(u => u.username === username && u.password === password);
+    
+    if (user) {
+      // Don't send password back to client
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } else {
+      res.status(401).json({ message: 'Invalid username or password' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Login failed' });
+  }
+});
+
+// Register endpoint
+app.post('/register', (req, res) => {
+  try {
+    const { username, password, fullName, address } = req.body;
+    const users = loadUsers();
+    
+    // Check if user already exists
+    if (users.find(u => u.username === username)) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+    
+    const newUser = { username, password, fullName, address };
+    users.push(newUser);
+    saveUsers(users);
+    
+    // Don't send password back to client
+    const { password: _, ...userWithoutPassword } = newUser;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    res.status(500).json({ message: 'Registration failed' });
+  }
+});
+
 // Helper to load products
 function loadProducts() {
   if (!fs.existsSync(FILE_PATH)) return [];
