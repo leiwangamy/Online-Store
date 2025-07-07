@@ -110,6 +110,13 @@
         video.controls = true;
         video.width = width;
         video.style.borderRadius = "8px";
+        video.preload = "metadata";
+        video.onerror = function() {
+          console.error("Video failed to load:", file);
+        };
+        video.onloadeddata = function() {
+          console.log("Video loaded successfully:", file);
+        };
         return video;
       } else {
         const img = document.createElement("img");
@@ -117,6 +124,9 @@
         img.alt = "Product media";
         img.width = width;
         img.style.borderRadius = "8px";
+        img.onerror = function() {
+          console.error("Image failed to load:", file);
+        };
         return img;
       }
     }
