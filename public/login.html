@@ -78,7 +78,16 @@
       if (res.ok) {
         // Save user data to localStorage
         localStorage.setItem("user", JSON.stringify(data));
-        window.location.href = "/index.html"; // Redirect to home or shopping page
+        
+        // Check if there's a redirect parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        
+        if (redirect) {
+          window.location.href = `/${redirect}`;
+        } else {
+          window.location.href = "/index.html"; // Default redirect to home
+        }
       } else {
         document.getElementById("error-message").textContent = data.message || "Login failed.";
       }

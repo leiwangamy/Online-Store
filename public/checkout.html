@@ -83,27 +83,19 @@
   </div>
 
   <script>
-
-    fetch('/api/user')
-    .then(res => res.json())
-    .then(user => {
-      if (!user.username) {
+    // Check if user is logged in on page load
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      
+      if (!user || !user.username) {
         // Not logged in → redirect to login page with return URL
         window.location.href = `/login.html?redirect=checkout.html`;
-      } else {
-        // Continue with showing the checkout page
-        loadCheckoutPage(user);
+        return;
       }
-    });
 
-    // ✅ Auto-fill user info on page load
-    document.addEventListener("DOMContentLoaded", () => {
-      fetch("/api/user")
-        .then(res => res.json())
-        .then(data => {
-          if (data.fullName) document.getElementById("name").value = data.fullName;
-          if (data.address) document.getElementById("address").value = data.address;
-        });
+      // User is logged in, auto-fill their info
+      if (user.fullName) document.getElementById("name").value = user.fullName;
+      if (user.address) document.getElementById("address").value = user.address;
     });
 
     // ✅ Handle order confirmation

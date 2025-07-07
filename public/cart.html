@@ -131,6 +131,17 @@
           showTemporaryAlert("🛑 Your cart is empty.");
           return;
         }
+        
+        // Check if user is logged in before proceeding to checkout
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user.username) {
+          showTemporaryAlert("Please log in to proceed to checkout.");
+          setTimeout(() => {
+            window.location.href = "login.html?redirect=checkout.html";
+          }, 1500);
+          return;
+        }
+        
         window.location.href = "checkout.html";
       };
     }
