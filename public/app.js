@@ -3,20 +3,33 @@
 let products = [];
 
 function showSuccessNotification(message) {
+  showNotification(message, 'success');
+}
+
+function showWarningNotification(message) {
+  showNotification(message, 'warning');
+}
+
+function showNotification(message, type = 'success') {
   // Remove any existing notification
-  const existing = document.getElementById('success-notification');
+  const existing = document.getElementById('notification');
   if (existing) {
     existing.remove();
   }
 
+  const isSuccess = type === 'success';
+  const bgColor = isSuccess ? 'linear-gradient(135deg, #4caf50, #45a049)' : 'linear-gradient(135deg, #ff9800, #f57c00)';
+  const borderColor = isSuccess ? '#2e7d32' : '#e65100';
+  const icon = isSuccess ? '✅' : '⚠️';
+
   // Create notification element
   const notification = document.createElement('div');
-  notification.id = 'success-notification';
+  notification.id = 'notification';
   notification.style.cssText = `
     position: fixed;
     top: 20px;
     right: 20px;
-    background: linear-gradient(135deg, #4caf50, #45a049);
+    background: ${bgColor};
     color: white;
     padding: 15px 20px;
     border-radius: 8px;
@@ -26,15 +39,16 @@ function showSuccessNotification(message) {
     font-weight: 500;
     z-index: 1000;
     max-width: 350px;
-    border-left: 4px solid #2e7d32;
+    border-left: 4px solid ${borderColor};
     display: flex;
     align-items: center;
     gap: 10px;
     animation: slideIn 0.3s ease-out;
+    cursor: pointer;
   `;
   
   notification.innerHTML = `
-    <span style="font-size: 18px;">✅</span>
+    <span style="font-size: 18px;">${icon}</span>
     <span>${message}</span>
   `;
 
@@ -243,13 +257,13 @@ function addNewCategory() {
   const categoryName = input.value.trim();
   
   if (!categoryName) {
-    alert('Please enter a category name');
+    showWarningNotification('Please enter a category name');
     return;
   }
 
   const existingCategories = [...new Set(products.map(p => p.category))];
   if (existingCategories.includes(categoryName)) {
-    alert('Category already exists');
+    showWarningNotification(`Category "${categoryName}" already exists! You can select it from the dropdown.`);
     return;
   }
 
@@ -263,7 +277,7 @@ function addNewCategory() {
   updateCategoryTags();
   
   // Show styled success notification
-  showSuccessNotification(`Category "${categoryName}" added! You can now create products with this category.`);
+  showSuccessNotification(`Category "${categoryName}" successfully added! You may now edit it or create products with this category.`);
 }
 
 function updateCategoryTags() {
