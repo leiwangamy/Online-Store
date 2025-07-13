@@ -41,9 +41,14 @@
   <hr>
 
   <!-- Category Management -->
-  <h2>📂 Category Management</h2>
-  <input type="text" id="category-add-input" placeholder="Enter new category name">
-  <button onclick="document.getElementById('category').value = document.getElementById('category-add-input').value;">Add Category</button>
+  <div class="category-management">
+    <h2>📂 Category Management</h2>
+    <div class="category-controls">
+      <input type="text" id="new-category-input" placeholder="Enter new category name">
+      <button onclick="addNewCategory()">Add Category</button>
+    </div>
+    <div id="category-tags"></div>
+  </div>
 
   <hr>
 
