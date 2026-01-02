@@ -9,6 +9,42 @@ h1 {
   text-align: center;
 }
 
+header {
+  background-color: #f8f9fa;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+header h1 {
+  margin: 0 0 15px 0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+header nav {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+header nav a {
+  color: #007bff;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+header nav a:hover {
+  background-color: #e9ecef;
+  text-decoration: underline;
+}
+
 .product-grid {
   display: flex;
   flex-wrap: wrap;

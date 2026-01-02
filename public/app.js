@@ -341,7 +341,7 @@ document.addEventListener("DOMContentLoaded", function () {
     updateCategoryTags();
   });
 
-  fetch('/api/products')
+  fetch('/api/products?includeInactive=true')
     .then(res => res.json())
     .then(data => {
       products = data;

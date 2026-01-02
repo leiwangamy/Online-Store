@@ -93,11 +93,16 @@ function saveProducts(products) {
   fs.writeFileSync(FILE_PATH, JSON.stringify(products, null, 2));
 }
 
-// GET all products
+// GET all products (filter active by default)
 app.get('/api/products', (req, res) => {
   try {
     const products = loadProducts();
-    res.json(products);
+    // Filter out inactive products unless 'includeInactive' query param is set
+    const includeInactive = req.query.includeInactive === 'true';
+    const filteredProducts = includeInactive 
+      ? products 
+      : products.filter(p => p.active !== false);
+    res.json(filteredProducts);
   } catch {
     res.status(500).send("Error loading products");
   }

@@ -51,6 +51,19 @@
     .modal-media-wrapper {
       position: relative;
       margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+      max-height: 400px;
+    }
+    .modal-media-wrapper img,
+    .modal-media-wrapper video {
+      max-width: 400px;
+      max-height: 400px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
     }
     .modal-nav-button {
       position: absolute;
@@ -153,15 +166,37 @@
 
   <script>
     function createMediaElement(file, width = 200) {
+      if (!file) {
+        // Return a placeholder if no file is provided
+        const placeholder = document.createElement('div');
+        placeholder.style.width = width + 'px';
+        placeholder.style.height = width + 'px';
+        placeholder.style.backgroundColor = '#f0f0f0';
+        placeholder.style.display = 'flex';
+        placeholder.style.alignItems = 'center';
+        placeholder.style.justifyContent = 'center';
+        placeholder.style.borderRadius = '8px';
+        placeholder.textContent = 'No Image';
+        return placeholder;
+      }
       const isVideo = file.match(/\.(mp4|webm|ogg)$/i);
       if (isVideo) {
         const video = document.createElement("video");
         video.src = file;
         video.controls = true;
-        video.width = width;
         video.style.borderRadius = "8px";
         video.preload = "metadata";
         video.muted = true; // Many browsers require muted for autoplay
+        // For modal (width >= 400), use CSS max-width/max-height for consistent sizing
+        if (width >= 400) {
+          video.style.maxWidth = "400px";
+          video.style.maxHeight = "400px";
+          video.style.width = "auto";
+          video.style.height = "auto";
+        } else {
+          // For product cards, use width attribute
+          video.width = width;
+        }
 
         // Comprehensive error handling
         video.onerror = function(e) {
@@ -221,8 +256,18 @@
         const img = document.createElement("img");
         img.src = file;
         img.alt = "Product media";
-        img.width = width;
         img.style.borderRadius = "8px";
+        // For modal (width >= 400), use CSS max-width/max-height for consistent sizing
+        if (width >= 400) {
+          img.style.maxWidth = "400px";
+          img.style.maxHeight = "400px";
+          img.style.width = "auto";
+          img.style.height = "auto";
+          img.style.objectFit = "contain";
+        } else {
+          // For product cards, use width attribute
+          img.width = width;
+        }
         img.onerror = function() {
           console.error("Image failed to load:", file);
         };
@@ -270,7 +315,10 @@
       const list = document.getElementById('product-list');
       list.innerHTML = '';
 
-      products.forEach(product => {
+      // Filter out inactive products
+      const activeProducts = products.filter(p => p.active !== false);
+
+      activeProducts.forEach(product => {
         const div = document.createElement('div');
         div.className = 'product-card';
 
@@ -296,28 +344,9 @@
         const price = document.createElement('p');
         price.textContent = `$${product.price.toFixed(2)}`;
 
-        const button = document.createElement('button');
-        button.textContent = 'Add to Cart';
-        button.onclick = () => {
-          const cart = JSON.parse(localStorage.getItem('cart')) || [];
-          const existing = cart.find(p => p.id === product.id);
-          if (existing) {
-            existing.quantity += 1;
-          } else {
-            cart.push({ ...product, quantity: 1 });
-          }
-          localStorage.setItem('cart', JSON.stringify(cart));
-          document.getElementById('custom-alert').style.display = 'block';
-          setTimeout(() => {
-            document.getElementById('custom-alert').style.display = 'none';
-          }, 2000);
-          updateCartCount();
-        };
-
         div.appendChild(name);
         div.appendChild(desc);
         div.appendChild(price);
-        div.appendChild(button);
         list.appendChild(div);
       });
     }
